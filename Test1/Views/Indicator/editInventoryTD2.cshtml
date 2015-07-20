@@ -1,0 +1,2973 @@
+﻿@using IndInv.Helpers
+@model IndInv.Models.ViewModels.PRViewModel
+@using IndInv.Models
+@using System.Globalization
+
+@{
+    ViewBag.Title = "Performance Reports";
+    ViewBag.Buttons = "";
+    foreach (var analyst in Model.allAnalysts)
+    {
+        ViewBag.Buttons += "<div id='btn' class='btnSwitch' value=" + analyst.Analyst_ID + " parameter=analystID >" + analyst.First_Name + "</div>";
+    }
+    ViewBag.Buttons += "<div id='btn' class='btnSwitch' value=" + 0 + " parameter=analystID >" + "All" + "</div>";
+    ViewBag.fiscalYear = Model.Fiscal_Year;
+}
+<div class="menu-bar">
+    <div class="row header-row">
+        <div class="large-6 columns">
+            <div class="menu-hover menu-button menu-open menu-coe" field="CoE"><i class="fa fa-folder-open-o"></i>CoE</div>
+            <div class="menu-hover menu-button menu-open menu-analyst" field="Analyst"><i class="fa fa-folder-open-o"></i>Analyst</div>
+            <div class="menu-hover menu-button menu-edit-footnotes"><i class="fa fa-pencil-square-o"></i>Footnotes</div>
+            <div class="menu-hover menu-button menu-undo"><i class="fa fa-undo"></i>Undo</div>
+            <div class="menu-hover menu-button menu-redo"><i class="fa fa-repeat"></i>Redo</div>
+        </div>
+        <div class="large-12 columns">
+            <div class="menu-hover menu-button menu-refresh" field="coe"><i class="fa fa-refresh"></i>Refresh</div>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+                <div class="calc-title">Sum:<div class ="calc calc-sum">0</div></div><div class="calc-title">Average:<div class ="calc calc-avg">0</div></div><div class="calc-title">Count:<div class ="calc calc-n">0</div></div>
+</div>
+
+<div class="container">
+	<div class="mp-pusher" id="mp-pusher">
+
+		<nav id="menuFilter3D" class="mp-menu">
+            <div class="mp-level">
+                <h2 class="backBtnMain mp-back"><i class="fa fa-times backBtnMain mp-back"></i>Filter by:</h2>
+                <ul>
+                    <li>
+                        <a href="#"><i class="fa fa-filter"></i>CoE</a>
+                        <div class="mp-level">
+                            <h2 class="backBtn mp-back"><i class="fa fa-times backBtn mp-back"></i>Filter by CoE:</h2>
+                            <ul class="doubleList">
+                                @foreach (var coe in Model.allCoEs)
+								{
+                                    <li>
+                                        <small><a href="#" class="filterMenuItem" field="coeID" id="@coe.CoE_ID" name="@coe.CoE"><i class="fa fa-angle-right"></i>@coe.CoE_Abbr </a></small>
+                                    </li>
+								}
+                            </ul>
+                        </div>
+                    </li>
+                    <li>
+                        <a href="#"><i class="fa fa-filter"></i>Quadrant</a>
+                        <div class="mp-level">
+                            <h2 class="backBtn mp-back"><i class="fa fa-times backBtn mp-back"></i>Filter by Quadrant:</h2>
+                            <ul>
+                                @foreach (var area in Model.allAreas)
+								{
+                                    <li>
+                                        <small><a href="#" class="filterMenuItem" field="areaID" id="@area.Area_ID" name="@area.Area"><i class="fa fa-angle-right"></i>@area.Area</a></small>
+                                    </li>
+								}
+                            </ul>
+                        </div>
+                    </li>
+                    <li>
+                        <a href="#"><i class="fa fa-filter"></i>Type</a>
+                        <div class="mp-level">
+                            <h2 class="backBtn mp-back"><i class="fa fa-times backBtn mp-back"></i>Filter by Type:</h2>
+                            <ul>
+                                @foreach (var footnote in Model.allFootnotes)
+								{
+                                    <li>
+                                        <small><a href="#" class="filterMenuItem" field="footnoteID" id="@footnote.Footnote_ID" name="@footnote.Footnote"><i class="fa fa-angle-right"></i>@footnote.Footnote</a></small>
+                                    </li>
+								}
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+
+		<div class="scroller">
+			<div class="scroller-inner">
+				<div id="pushList">
+					<input class="search" id="search_input" name="Search" type="search" placeholder="Search" />
+					<a><span id="trigger" class="filterExpand menu-trigger"><i class="fa fa-filter fa-2x"></i></span></a>
+
+					<div class="inner-wrap">
+
+						<ul id="myTags" class="tagList">
+						</ul>
+							<div class="block" id="block">
+								@{var properties = ModelMetadataProviders.Current;
+								  var fiscalYear = Model.Fiscal_Year;
+								  var allFields = new List<string>();
+								  var allFieldClasses = new List<string>();
+								}
+								<div class="prBlock">
+									<div class="PRdiv">
+									<table id="tbl_Inventory" class="PR" border="1" style="border-collapse:collapse" runat="server" >
+                                        <thead>
+										<tr class="prheader-1">
+                                            <th  class="prheader prheader-1 pr-id-column">ID</th>
+											<th  class="prheader prheader-1 pr-coe-column">CoE</th>
+											<th  class="prheader prheader-1 pr-title-column">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.Indicator) </th>
+											<th  class="prheader prheader-1 pr-td-column">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_3", fiscalYear)).DisplayName</th>
+											<th  class="prheader prheader-1 pr-td-column">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_2", fiscalYear)).DisplayName</th>
+											<th  class="prheader prheader-1 pr-td-column">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_1", fiscalYear)).DisplayName</th>
+                                            <th  class="prheader prheader-2 pr-td-column">@Html.Raw(FiscalYear.FYStrFull("FY_", fiscalYear) + "Q1")</th>
+											<th  class="prheader prheader-2 pr-td-column">@Html.Raw(FiscalYear.FYStrFull("FY_", fiscalYear) + "Q2")</th>
+											<th  class="prheader prheader-2 pr-td-column">@Html.Raw(FiscalYear.FYStrFull("FY_", fiscalYear) + "Q3")</th>
+											<th  class="prheader prheader-2 pr-td-column">@Html.Raw(FiscalYear.FYStrFull("FY_", fiscalYear) + "Q4")</th>
+											<th  class="prheader prheader-2 pr-td-column">@Html.Raw(FiscalYear.FYStrFull("FY_", fiscalYear) + "YTD")</th>
+											<th  class="prheader prheader-1 pr-td-column">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_", fiscalYear) + "Target").DisplayName</th>
+											<th  class="prheader prheader-1 pr-td-column">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_", fiscalYear) + "Performance_Threshold").DisplayName</th>
+											<th  class="prheader prheader-1 pr-td-column">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_", fiscalYear) + "Comparator").DisplayName</th>
+                                            <th  class="prheader prheader-1 pr-def-column">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_", fiscalYear) + "Definition_Calculation").DisplayName</th>
+											<th  class="prheader prheader-1 pr-def-column">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_", fiscalYear) + "Target_Rationale").DisplayName</th>
+											<th  class="prheader prheader-1 pr-def-column">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_", fiscalYear) + "Comparator_Source").DisplayName</th>
+                                            <th  class="prheader prheader-1 pr-td-column">Comparator Q1</th>
+                                            <th  class="prheader prheader-1 pr-td-column">Comparator Q2</th>
+                                            <th  class="prheader prheader-1 pr-td-column">Comparator Q3</th>
+                                            <th  class="prheader prheader-1 pr-td-column">Comparator Q4</th>
+										</tr>
+                                        </thead>
+                                        <tbody>
+											@{string[,] oldColumns = null;
+											List<int> allColspans = new List<int>();
+											var allMaps = Model.allMaps.Where(x => x.Fiscal_Year == fiscalYear).Where(x=>x.Indicator.Indicator_N_Value != true).OrderBy(f => f.Indicator_ID).ToList();
+											var allNValues = Model.allMaps.Where(x => x.Fiscal_Year == fiscalYear && x.Indicator.Indicator_N_Value == true).ToList();
+											var allMapsWithNValues = new List<Indicator_CoE_Maps>();
+											foreach (var nValue in allNValues)
+											{
+												var indicatorIndex = allMaps.FirstOrDefault(x => x.Indicator_ID == nValue.Indicator.Indicator_N_Value_ID);
+												if (indicatorIndex != null)
+												{
+													var position = allMaps.IndexOf(indicatorIndex);
+													allMapsWithNValues.Add(indicatorIndex);
+													allMaps.Insert(position + 1, nValue);
+												}
+											}
+											foreach (var map in allMaps)
+											{
+												var indicator = map.Indicator;
+												var indicatorType = indicator.GetType();
+												var indicatorTitle = ""; var skip = false;
+												if (map.Indicator.Indicator != null && map.Indicator.Indicator.Contains("%SKIP%") == false)
+												{
+													indicatorTitle = Html.DisplayFor(modelItem => map.Indicator.Indicator).ToString();
+												}
+												else
+												{
+													skip = true;
+												}
+												int rowSpan;
+												var colorID = (Int16)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_", fiscalYear) + "Color_ID").GetValue(indicator, null);
+                                                var directionID = (Int16)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_", fiscalYear) + "Direction_ID").GetValue(indicator, null);
+                                                var thresholdID = (Int16)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_", fiscalYear) + "Threshold_ID").GetValue(indicator, null);
+												var formatStr = indicator.Format != null ? indicator.Format.Format_Code : "";
+												var formatID = indicator.Format_ID != null ? indicator.Format_ID.ToString() : "";
+												if (allMapsWithNValues.Contains(map) || !allNValues.Contains(map))
+												{
+													if (allMapsWithNValues.Contains(map))
+													{
+														rowSpan = 1;
+														@:<tr class='blockFilter coeID-@map.Indicator.Indicator_CoE_Map.FirstOrDefault().CoE_ID areaID-@map.Indicator.Area_ID @foreach (var footnote in map.Indicator.Indicator_Footnote_Map) { @:footnoteID-@footnote.Footnote_ID 
+														} prrow prrow-hasNValue' areaID="@map.Indicator.Area_ID" coeID="@map.Indicator.Indicator_CoE_Map.FirstOrDefault().CoE_ID" mapID="@map.Map_ID" indicatorId="@map.Indicator_ID" colorID="@colorID" directionID="@directionID" thresholdID="@thresholdID" formatStr="@formatStr" formatID="@formatID">
+													}
+													else
+													{
+														rowSpan = 1;
+														@:<tr class='blockFilter coeID-@map.Indicator.Indicator_CoE_Map.FirstOrDefault().CoE_ID areaID-@map.Indicator.Area_ID @foreach (var footnote in map.Indicator.Indicator_Footnote_Map) { @:footnoteID-@footnote.Footnote_ID
+														} prrow'areaID="@map.Indicator.Area_ID" coeID="@map.Indicator.Indicator_CoE_Map.FirstOrDefault().CoE_ID" mapID="@map.Map_ID" indicatorId="@map.Indicator_ID" colorID="@colorID" directionID="@directionID" thresholdID="@thresholdID" formatStr="@formatStr" formatID="@formatID">
+													}
+												}
+												else if (allNValues.Contains(map))
+												{
+													rowSpan = 1;
+													@:<tr class='blockFilter coeID-@allMaps.FirstOrDefault(x=>x.Indicator_ID == map.Indicator.Indicator_N_Value_ID).CoE_ID areaID-@map.Indicator.Area_ID @foreach (var footnote in map.Indicator.Indicator_Footnote_Map) { @:footnoteID-@footnote.Footnote_ID
+													} prrow prrow-isNValue'areaID="@map.Indicator.Area_ID" coeID="@map.Indicator.Indicator_CoE_Map.FirstOrDefault().CoE_ID" mapID="@map.Map_ID" indicatorId="@map.Indicator_ID" colorID="@colorID" directionID="@directionID" thresholdID="@thresholdID" formatStr="@formatStr" formatID="@formatID">
+
+												}
+												else
+												{
+													rowSpan = 1;
+												}
+												<td indicatorID="@map.Indicator_ID" field="Indicator_ID" class="prtd-id pr-id-column">@indicator.Indicator_ID</td>
+												<td indicatorID="@map.Indicator_ID" field="CoE" class="prtd-CoE pr-coe-column">@indicator.Indicator_CoE_Map.FirstOrDefault().CoE.CoE_Abbr</td>
+												<td indicatorID="@map.Indicator_ID" field="Indicator" class="prtd-title pr-title-column">@indicatorTitle</td>
+												string[,] columns = new string[,]{
+												{
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_3",fiscalYear)).GetValue(indicator,null),
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_3",fiscalYear) + "_Sup").GetValue(indicator,null),
+													"", 
+													FiscalYear.FYStrFull("FY_3",fiscalYear), 
+													"1",
+												},
+												{
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_2",fiscalYear)).GetValue(indicator,null),
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_2",fiscalYear) + "_Sup").GetValue(indicator,null), 
+													"", 
+													FiscalYear.FYStrFull("FY_2",fiscalYear),
+													"1"
+												},
+												{
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_1",fiscalYear)).GetValue(indicator,null),
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_1",fiscalYear) + "_Sup").GetValue(indicator,null),
+													"", 
+													FiscalYear.FYStrFull("FY_1",fiscalYear), 
+													"1"
+												},
+												{
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q1").GetValue(indicator,null),
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q1_Sup").GetValue(indicator,null), 
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q1_Color").GetValue(indicator,null) + " Q1_Color", 
+													FiscalYear.FYStrFull("FY_",fiscalYear) + "Q1",
+													"1"
+												},
+												{
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q2").GetValue(indicator,null),
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q2_Sup").GetValue(indicator,null),
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q2_Color").GetValue(indicator,null) + " Q2_Color", 
+													FiscalYear.FYStrFull("FY_",fiscalYear) + "Q2", 
+													"1"
+												},
+												{
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q3").GetValue(indicator,null),
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q3_Sup").GetValue(indicator,null),
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q3_Color").GetValue(indicator,null) + " Q3_Color", 
+													FiscalYear.FYStrFull("FY_",fiscalYear) + "Q3", 
+													"1"
+												},
+												{
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q4").GetValue(indicator,null),
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q4_Sup").GetValue(indicator,null),
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q4_Color").GetValue(indicator,null) + " Q4_Color", 
+													FiscalYear.FYStrFull("FY_",fiscalYear) + "Q4", 
+													"1"
+												},
+												{
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "YTD").GetValue(indicator,null),
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "YTD_Sup").GetValue(indicator,null),
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "YTD_Color").GetValue(indicator,null) + " YTD_Color", 
+													FiscalYear.FYStrFull("FY_",fiscalYear) + "YTD", 
+													"1"
+												},
+												{
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Target").GetValue(indicator,null),
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Target_Sup").GetValue(indicator,null), 
+													"", 
+													FiscalYear.FYStrFull("FY_",fiscalYear) + "Target", 
+													rowSpan.ToString()
+												},
+												{
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Performance_Threshold").GetValue(indicator,null),
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Performance_Threshold_Sup").GetValue(indicator,null), 
+													"", 
+													FiscalYear.FYStrFull("FY_",fiscalYear) + "Performance_Threshold", 
+													rowSpan.ToString()
+												},
+												{
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Comparator").GetValue(indicator,null),
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Comparator_Sup").GetValue(indicator,null), 
+													"", 
+													FiscalYear.FYStrFull("FY_",fiscalYear) + "Comparator", 
+													rowSpan.ToString()
+												},
+                                                {
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Definition_Calculation").GetValue(indicator,null),
+													"", 
+													"prtdDef, pr-def-column",
+													FiscalYear.FYStrFull("FY_",fiscalYear) + "Definition_Calculation",
+                                                    rowSpan.ToString()
+												},
+												{
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Target_Rationale").GetValue(indicator,null),
+													"",
+													"prtdDef, pr-def-column", 
+													FiscalYear.FYStrFull("FY_",fiscalYear) + "Target_Rationale",
+                                                    rowSpan.ToString()
+                                                },
+												{
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Comparator_Source").GetValue(indicator,null),
+													"", 
+													"prtdDef, pr-def-column", 
+													FiscalYear.FYStrFull("FY_",fiscalYear) + "Comparator_Source",
+                                                    rowSpan.ToString()
+												},
+												{
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Comparator_Q1").GetValue(indicator,null),
+													"",
+													"prtdCompBackUp", 
+													FiscalYear.FYStrFull("FY_",fiscalYear) + "Comparator_Q1", 
+													rowSpan.ToString()
+												},
+												{
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Comparator_Q2").GetValue(indicator,null),
+													"",
+													"prtdCompBackUp", 
+													FiscalYear.FYStrFull("FY_",fiscalYear) + "Comparator_Q2", 
+													rowSpan.ToString()
+												},
+												{
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Comparator_Q3").GetValue(indicator,null),
+													"",
+													"prtdCompBackUp", 
+													FiscalYear.FYStrFull("FY_",fiscalYear) + "Comparator_Q3", 
+													rowSpan.ToString()
+												},
+												{
+													(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Comparator_Q4").GetValue(indicator,null),
+													"",
+													"prtdCompBackUp", 
+													FiscalYear.FYStrFull("FY_",fiscalYear) + "Comparator_Q4", 
+													rowSpan.ToString()
+												}
+												};
+												ViewBag.PRCols = columns;
+												if (!skip)
+												{
+													oldColumns = columns;
+												}
+												for (int i = 0; i <= columns.GetUpperBound(0); i++)
+												{
+													if (!allFields.Contains(columns[i, 3]))
+													{
+														allFields.Add(columns[i, 3]);
+														allFieldClasses.Add(columns[i, 2]);
+													}
+
+													int colSpan = 1;
+													if (i != columns.GetUpperBound(0) && columns[i + 1, 0] == "=")
+													{
+														int k = 1;
+														while (columns[i + k, 0] == "=")
+														{
+															colSpan++;
+															k++;
+														}
+													}
+													else { colSpan = 1; };
+													allColspans.Add(colSpan);
+													if (columns[i, 0] != "=")
+													{
+														var cls = columns[i, 2];
+														if (skip) { cls = oldColumns[i, 2]; };
+														if (allNValues.Contains(map)) { cls = "prtd"; };
+														if (columns[i, 4] != "0")
+														{
+															<td align="center" indicatorID="@map.Indicator_ID" field="@Html.Raw(columns[i, 3])" class="prtd @Html.Raw(cls)">
+																@if (!cls.Contains("prtdDef")){
+																	<input class="pr-input pr-input-val" value="@Html.Raw(columns[i, 0])" oldvalue="@Html.Raw(columns[i, 0])"/>
+																	<input class="pr-input pr-input-sup" value="@Html.Raw(columns[i, 1])" oldvalue="@Html.Raw(columns[i, 1])"/>
+																} else {
+																	<textarea class="pr-input pr-input-def" value="@Html.Raw(columns[i, 0])" oldvalue="@Html.Raw(columns[i, 0])">@Html.Raw(columns[i, 0])</textarea>
+																}
+                                                                <div class="tdValue">@Html.Raw(columns[i, 0]) <sup>@Html.Raw(columns[i, 1])</sup></div>
+															</td>
+														}
+													} else {
+														var cls = columns[i, 2];
+														if (skip) { cls = oldColumns[i, 2]; };
+														if (allNValues.Contains(map)) { cls = "prtd"; };
+														if (columns[i, 4] != "0")
+														{
+															<td align="center", style="display:none" indicatorID="@map.Indicator_ID", field="@Html.Raw(columns[i, 3])", class="prtd @Html.Raw(cls)">
+																@if (!cls.Contains("prtdDef")){
+																	<input class="pr-input pr-input-val" value="" oldvalue=""/>
+																	<input class="pr-input pr-input-sup" value="" oldvalue=""/>
+																} else {
+																	<textarea class="pr-input pr-input-def" value="" oldvalue=""></textarea>
+																}
+                                                                <div class="tdValue"></div>
+															</td>
+														}
+													}
+												}
+											@:</tr>
+											}
+                                        }
+                                        </tbody>
+									</table>
+								</div>
+							</div>
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<!-- /pusher -->
+</div><!-- /container -->
+    
+    <div id="menuFilter">
+    <nav>
+        <h2 class="backBtnMain"><i class="fa fa-times backBtnMain"></i>Filter by:</h2>
+        <ul>
+            <li>
+                <a href="#"><i class="fa fa-filter"></i>CoE</a>
+                <h2 class="backBtn"><i class="fa fa-times backBtn"></i>Filter by CoE:</h2>
+                <ul class="doubleList">
+                    @foreach (var coe in Model.allCoEs)
+                    {
+                        <li>
+                            <small><a href="#" class="filterMenuItem" field="coeID" id="@coe.CoE_ID" name="@coe.CoE"><i class="fa fa-angle-right"></i> @coe.CoE_Abbr </a></small>
+                        </li>
+                    }
+                </ul>
+            </li>
+            <li>
+                <a href="#"><i class="fa fa-filter"></i>Quadrant</a>
+                <h2 class="backBtn"><i class="fa fa-times backBtn"></i>Filter by Quadrant:</h2>
+                <ul>
+                    @foreach (var area in Model.allAreas)
+                    {
+                        <li>
+                            <small><a href="#" class="filterMenuItem" field="areaID" id="@area.Area_ID" name="@area.Area"><i class="fa fa-angle-right"></i> @area.Area</a></small>
+                        </li>
+                    }
+                </ul>
+            </li>
+            <li>
+                <a href="#"><i class="fa fa-filter"></i>Type</a>
+                <h2 class="backBtn"><i class="fa fa-times backBtn"></i>Filter by Type:</h2>
+                <ul>
+                    @foreach (var footnote in Model.allFootnotes)
+                    {
+                        <li>
+                            <small><a href="#" class="filterMenuItem" field="footnoteID" id="@footnote.Footnote_ID" name="@footnote.Footnote"><i class="fa fa-angle-right"></i> @footnote.Footnote</a></small>
+                        </li>
+                    }
+                </ul>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<div class="overlay"></div>
+<div class="backToTop"><i class="fa fa-arrow-up"></i></div>
+
+<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="//code.jquery.com/ui/1.11.2/jquery-ui.min.js" ></script>
+
+<link rel="stylesheet" href="//cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css" />
+<script type="text/javascript" src="//cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js" ></script>
+<script type="text/javascript" src="//cdn.datatables.net/fixedcolumns/3.0.0/js/dataTables.fixedColumns.min.js" ></script>
+
+<link href="~/Scripts/ColumnFilterWidgets.css" rel="stylesheet" />
+<script src="~/Scripts/ColumnFilterWidgets.js"></script>
+
+<script src="~/Scripts/tag-it.min.js"></script>
+<link rel="stylesheet" href="../../Scripts/jquery.multilevelpushmenu.css" />
+<script type="text/javascript" src="../../Scripts/jquery.multilevelpushmenu.js" ></script>
+<script type="text/javascript" src="~/Scripts/classie.js"></script>
+<script type="text/javascript" src="~/Scripts/mlpushmenu.js"></script>
+<script src="~/Scripts/undomanager.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/1.4.5/numeral.min.js"></script>
+
+<script type="text/javascript">
+    if (!window.jQuery) document.write('<script type="text/javascript" src="../../Scripts/jquery-1.11.0.min.js"><\/script>');
+</script>
+
+<script type="text/javascript">
+    var currentMousePos = { x: -1, y: -1 };
+    $(document).mousemove(function(event) {
+        currentMousePos.x = event.pageX;
+        currentMousePos.y = event.pageY + $('#pushobjLazy').scrollTop();
+    });
+
+	
+    if (!$("html").hasClass("lt-ie9")) {
+    	new mlPushMenu(document.getElementById('menuFilter3D'), document.getElementById('trigger'));
+    }
+
+    $(document).ready(function () {
+
+    	var blockHeight = $('.block').height();
+    	$('.block').height(blockHeight - 146);
+    	blockHeight = $('.block').height();
+    	$(".overlay").hide()
+
+    	var tbl_Inventory = $('#tbl_Inventory').DataTable({
+    		"scrollX": true,
+    		"scrollY": blockHeight - 111,
+    		"sDom": 'W<"clear">lfrtip',
+    		"aaSorting": [],
+    		"columnnDefs": [
+				{width:10, targets:0},
+				{width:50, targets:0},
+				{width:50, targets:0}
+    		]
+    	});
+    	new $.fn.dataTable.FixedColumns( tbl_Inventory, {
+    		leftColumns: 3	
+    	});
+
+    	if ($("html").hasClass("lt-ie9")) {
+    		$('#menuFilter').multilevelpushmenu({
+    			fullCollapse: true,
+    			menuHeight: $(window).height(),
+    			collapsed: true,
+    			menuWidth: '30%',
+    			onExpandMenuStart: function () {
+    				$(".overlay").fadeIn("fast");
+    			},
+    			onCollapseMenuStart: function () {
+    				if ($('#menuFilter').multilevelpushmenu('activemenu').attr('data-level') == 0) {
+    					$(".overlay").fadeOut("fast");
+    				}
+    			},
+    		});
+
+    		$('.backItemClass').remove();
+
+    		$('.backBtn').on('click', function () {
+    			$('#menuFilter').multilevelpushmenu('collapse', 0)
+    		});
+
+    		$('.backBtnMain').on('click', function () {
+    			$('#menuFilter').multilevelpushmenu('collapse')
+    		});
+
+    		$('.filterExpand').click(function () {
+    			$('#menuFilter').multilevelpushmenu('expand');
+    		});
+
+    		$('#menuFilter').multilevelpushmenu('redraw');
+    	}
+
+    	var hidden = false;
+
+    	var delay = (function(){
+    		var timer = 0;
+    		return function(callback, ms){
+    			clearTimeout (timer);
+    			timer = setTimeout(callback, ms);
+    		};
+    	})();
+    	$('#search_input').on('keyup change search click', function () {
+    		delay(function(value){
+    			var valThis = $('#search_input').val().toLowerCase();
+    			if (valThis == "") {
+    				$(".blockFilter").removeClass('textFiltered');
+    				$('.prrow-isNValue').removeClass('textFiltered');
+    			} else {
+    				//$('.blockFilter > li > .row > .titleColumn > .title').each(function () {
+    				$('.blockFilter > .prtd-title, .blockFilter > .prtd-titleDef').each(function () {
+    					var text = $(this).text().toLowerCase();
+    					var listItems;
+    					if (text.indexOf(valThis) >= 0) {
+    						$(this).closest(".blockFilter").removeClass('textFiltered');
+    					} else {
+    						$(this).closest(".blockFilter").addClass('textFiltered');
+    					}
+    				});
+    				$('.prrow-isNValue').addClass('textFiltered');
+    			};
+    			refreshView();
+    		}, 500);
+    	});
+
+
+    	$("#myTags").tagit({
+    		onTagClicked: function (event, ui) {
+    			$("#myTags").tagit("removeTagByLabel", ui.tagLabel);
+    		},
+    		beforeTagRemoved: function (event, ui) {
+    			var field = ui.tag.attr('field');
+    			var id = ui.tag.attr('id');
+    			updateFilterHide(id, field);
+    			$(".filterMenuItem[id='" + id + "'][field='" + field + "']").closest('li').removeClass('filterCheck');
+    			refreshView();
+    		},
+    		afterTagRemoved: function (event, ui) {
+    			if ($("#myTags").tagit("assignedTags").length === 0) {
+    				$.each(filterClassList, function(index, value){
+    					$("." + value).removeClass(value);
+    				});
+    				hidden=false;
+    				refreshView();
+    			}
+    		},
+    	});
+
+    	$(".filterMenuItem").on("click", function () {
+    		var field = $(this).attr('field')
+    		var name = $.trim($(this).attr('name'));
+    		var id = $(this).attr('id');
+    		var tags = $("#myTags").tagit("assignedTags");
+    		if ($.inArray(name, tags) === -1) {
+    			$(this).closest('li').addClass('filterCheck');
+    			$("#myTags").tagit("createTag", name);
+    			$('ul li:nth-last-child(2)').attr('id', id);
+    			$('ul li:nth-last-child(2)').attr('field', field);
+    			updateFilter(id, field);
+    		} else {
+    			$(this).parent().parent().removeClass('filterCheck');
+    			$(this).removeClass('filterCheck');
+    			$("#myTags").tagit("removeTagByLabel", name);
+    			//updateFilterHide(id, field);
+    		}
+    		refreshView();
+    	});
+
+    	var filterClassList = [];
+    	function updateFilter(id, field) {
+    		var filterClass = "filtered-" + field;
+    		if( $("." + filterClass).length == 0 ){
+    			$('.blockFilter').addClass(filterClass);
+    		}
+    		$('.' + field + "-" + id).removeClass(filterClass);
+    		if ($.inArray(filterClass, filterClassList) === -1) {
+    			filterClassList.push(filterClass);
+    		};
+    	}
+    	function updateFilterHide(id, field) {
+    		var filterClass = "filtered-" + field;
+    		$('.' + field + "-" + id).addClass(filterClass);
+    		if ($('.blockFilter').length == $('.' + filterClass).length) {
+    			$('.blockFilter').removeClass(filterClass);
+    		}
+    	}
+
+    	function refreshView() {
+    		$('.blockFilter').show();
+    		$.each(filterClassList, function(index, value){
+    			$("." + value).hide();
+    		});
+    		$('.textFiltered').hide();
+    		$.each($('table'), function(index, value) {
+    			var visibleRows = $(this).find('> tbody > tr').filter(function(){
+    				return $(this).css('display') != 'none' && $(this).hasClass('blockFilter');
+    			}).length;
+    			if (visibleRows !== 0) { $(this).closest('.prBlock').show();}
+    			else { $(this).closest('.prBlock').hide(); }
+
+    			@foreach(var area in Model.allAreas){
+                <text>
+    			var visibleAreaRows = $(this).find('> tbody > tr').filter(function(){
+    				return $(this).css('display') != 'none' && $(this).hasClass('blockFilter') && $(this).attr('areaid') == @area.Area_ID;
+    			}).length;
+    			if (visibleAreaRows !== 0) { $(this).find(' > tbody > .prrow-area[areaID="@area.Area_ID"]').show();}
+    			else { $(this).find(' > tbody > .prrow-area[areaID="@area.Area_ID"]').hide(); }
+    			</text>
+                }
+    		});
+    		$('.block').height(blockHeight - $('#myTags').height());
+    	}
+
+    	var offset = 220;
+    	var duration = 500;
+    	jQuery(window).scroll(function() {
+    		if (jQuery(this).scrollTop() > offset) {
+    			jQuery('.backToTop').fadeIn(duration);
+    		} else {
+    			jQuery('.backToTop').fadeOut(duration);
+    		}
+    	});
+
+    	$.fn.scrollEnd = function(callback, timeout) {          
+    		$(this).scroll(function(){
+    			var $this = $(this);
+    			if ($this.data('scrollTimeout')) {
+    				clearTimeout($this.data('scrollTimeout'));
+    			}
+    			$this.data('scrollTimeout', setTimeout(callback,timeout));
+    		});
+    	};
+    	$('.block').scrollEnd(function(){
+    		$("#tbl_Inventory").selectable("refresh");
+    	},500);
+
+    	var selectHeader = $('table > thead').selectable({
+    		fiter:'.prheader',
+    		start: function(event, ui){
+    			$('td.ui-selected').removeClass('ui-selected');
+    		}
+    	})
+
+    	$(document).mousedown(function(e){ 
+    		if( e.button == 2 ) { 
+    			if (!$(e.target).is('th')){return false;}
+    			if(!$(e.target).hasClass('ui-selected')){
+    				if(!$(e.target).closest('td').hasClass('ui-selected')){
+    					$('.ui-selectee')
+						.removeClass('ui-selected').removeClass("to-merge")
+						.parents('.ui-selectable')
+						.trigger('selectablestop')
+    					unselect();
+
+    					var cell = $(e.target).closest('.prtd');
+    					$(cell).addClass('ui-selected');
+    					var ui = {selected: cell};
+    					selected(null, ui);
+    					calcRefresh();
+    				}
+    			} 
+    		}
+    	}); 
+
+    	Number.prototype.countDecimals = function () {
+    		if(Math.floor(this.valueOf()) === this.valueOf()) return 0;
+    		return this.toString().split(".")[1].length || 0; 
+    	}
+    	var selectedSum =0;
+    	var selectedAverage =0;
+    	var selectedN =0;
+    	var selectedDec =0;
+    	var selectObj = $('table').selectable({
+    		filter: "td.prtd",
+    		distance: 1,
+    		//autoRefresh: false,
+    		start: function(event, ui){
+    			$('th.ui-selected').removeClass('ui-selected');
+    			$('.ui-selectee').removeClass("to-merge");
+    			$('.ui-selectee').removeClass("to-merge-start");
+    			selectedSum =0;
+    			selectedAverage =0;
+    			selectedN =0;
+    			selectedDec =0;
+    			calcRefresh();
+    		},
+    		selected: function(event, ui){
+    			var cell = $(ui.selected).children('.tdValue');
+    			var cellHtml = cell.html();
+    			var num = parseFloat(cell.html().replace(/\r\n/g, "\n"));
+    			//var num = cell.html()
+    			if (!isNaN(num)){
+    				selectedN +=1
+    				selectedSum += num;
+    				selectedAverage = selectedSum / selectedN;
+    				if (num.countDecimals() > selectedDec){
+    					selectedDec = num.countDecimals();
+    				}
+    			}
+    			if(cell.parent().prevAll(':visible').first().hasClass("ui-selected")){
+    				cell.parent().addClass("to-merge");
+    			} else {
+    				cell.parent().addClass("to-merge-start");
+    			}
+    			calcRefresh();
+    		},
+    		unselect: function(event, ui){
+    			$('.ui-selectee').removeClass("to-merge");
+    			$('.ui-selectee').removeClass("to-merge-start");
+    			selectedSum =0;
+    			selectedAverage =0;
+    			selectedN =0;
+    			selectedDec =0;
+    			calcRefresh();
+    		}
+    	});
+    
+    	var unselect = selectObj.selectable("option", "unselect");
+    	var selected = selectObj.selectable("option", "selected");
+		/*
+    	$('#tbl_Inventory td.ui-selectee').click(function(e) {
+    		if (e.ctrlKey && !$(this).hasClass('ui-selected')){
+    			var cell = this;
+    			$(cell).addClass('ui-selected');
+    			var ui = {selected: cell};
+    			selected(null, ui);
+    			calcRefresh();
+    		}else{
+    			$('.ui-selectee')
+				  .removeClass('ui-seldatatablesected').removeClass("to-merge")
+				  .parents('.ui-selectable')
+				  .trigger('selectablestop')
+    			unselect();
+    			calcRefresh();
+    		}
+    	});*/
+
+    	calcRefresh = function(){
+    		$('.calc-sum').html(selectedSum.toFixed(selectedDec));
+    		$('.calc-avg').html(selectedAverage.toFixed(selectedDec));
+    		$('.calc-n').html(selectedN);
+    	};
+
+
+
+    	var oldRows;
+    	var sortable = $('tbody').sortable({
+    		items: "> .prrow:not(.prrow-area)",
+    		handle: ".prtd-id",
+		
+    		start: function(event, ui){
+    			var tbody = $(this);
+    			oldRows = tbody.find("> tr:not(.ui-sortable-placeholder)");
+    		},
+
+    		stop: function(event, io){
+    			var tbody = $(this);
+    			var rows = tbody.find("> tr:not(.ui-sortable-placeholder)");
+    			sortUndoable(tbody, rows, oldRows);
+    		}
+    	});
+
+    	sort = function(rows){
+    		var order = [];
+    		var areaIDs = [];
+    		$.each(rows, function(index, value){
+    			var row = $(this);
+    			if (row.hasClass('prrow') && !row.hasClass('prrow-area')){
+    				var mapID = row.attr('mapID');
+    				var areaID = row.prevAll('.prrow-area:first').attr('areaID');
+    				order.push(mapID);
+    				areaIDs.push(areaID);
+    			}
+    		});
+    		$.ajax({
+    			type:"POST",
+    			url: "setNewOrder",
+    			data: {newOrder: order, areaIDs: areaIDs},
+    			traditional: true,
+    		});
+    	};
+    	sortUndoable = function(tbody, rows, oldRows){
+    		sort(rows);
+    		undoManager.add({
+    			undo: function(){
+    				$.each(oldRows, function(index,value){
+    					$(tbody).append($(this));
+    				});
+    				sort(oldRows);
+    			},
+    			redo: function(){
+    				$.each(rows, function(index,value){
+    					$(tbody).append($(this));
+    				});
+    				sort(rows);
+    			}
+    		});
+    	};
+
+    	function getInputSelection(el) {
+    		var start = 0, end = 0, normalizedValue, range,
+				textInputRange, len, endRange;
+
+    		if (typeof el.selectionStart == "number" && typeof el.selectionEnd == "number") {
+    			start = el.selectionStart;
+    			end = el.selectionEnd;
+    		} else {
+    			range = document.selection.createRange();
+
+    			if (range && range.parentElement() == el) {
+    				len = el.value.length;
+    				normalizedValue = el.value.replace(/\r\n/g, "\n");
+
+    				// Create a working TextRange that lives only in the input
+    				textInputRange = el.createTextRange();
+    				textInputRange.moveToBookmark(range.getBookmark());
+
+    				// Check if the start and end of the selection are at the very end
+    				// of the input, since moveStart/moveEnd doesn't return what we want
+    				// in those cases
+    				endRange = el.createTextRange();
+    				endRange.collapse(false);
+
+    				if (textInputRange.compareEndPoints("StartToEnd", endRange) > -1) {
+    					start = end = len;
+    				} else {
+    					start = -textInputRange.moveStart("character", -len);
+    					start += normalizedValue.slice(0, start).split("\n").length - 1;
+
+    					if (textInputRange.compareEndPoints("EndToEnd", endRange) > -1) {
+    						end = len;
+    					} else {
+    						end = -textInputRange.moveEnd("character", -len);
+    						end += normalizedValue.slice(0, end).split("\n").length - 1;
+    					}
+    				}
+    			}
+    		}
+
+    		return {
+    			start: start,
+    			end: end
+    		};
+    	}
+
+
+    	if (!Array.prototype.filter)
+    	{
+    		Array.prototype.filter = function(fun)
+    		{
+    			"use strict";
+
+    			if (this === void 0 || this === null)
+    				throw new TypeError();
+
+    			var t = Object(this);
+    			var len = t.length >>> 0;
+    			if (typeof fun !== "function")
+    				throw new TypeError();
+
+    			var res = [];
+    			var thisp = arguments[1];
+    			for (var i = 0; i < len; i++)
+    			{
+    				if (i in t)
+    				{
+    					var val = t[i]; 
+    					if (fun.call(thisp, val, i, t))
+    						res.push(val);
+    				}
+    			}
+
+    			return res;
+    		};
+    	}
+
+    	function formatIndicator(obj, formatID){
+    		var indicatorID = obj.attr('indicatorID');
+    		$.post('formatIndicator', {indicatorID: indicatorID, formatID: formatID}, function(data){
+    		});
+    	}
+		
+    	$(document).on('click', '.export-Excel', function(e){
+    		var coeID = e.target.attributes.getNamedItem('coeID').value
+    		var fiscalYear = e.target.attributes.getNamedItem('fiscalYear').value
+    		var coeIDFilter;
+    		if (coeID != 0) {
+    			coeIDFilter = "&coeID=" + coeID;
+    		}
+    		window.open("viewPRExcel?fiscalYear=" + fiscalYear + coeIDFilter, "Excel");
+    	});
+    	$(document).on('click', '.export-PDF', function(e){
+    		var coeID = e.target.attributes.getNamedItem('coeID').value
+    		var fiscalYear = e.target.attributes.getNamedItem('fiscalYear').value
+    		var coeIDFilter;
+    		if (coeID != 0) {
+    			coeIDFilter = "&coeID=" + coeID;
+    		}
+    		window.open("viewPRPdf?fiscalYear=" + fiscalYear + coeIDFilter, "PDF");
+    	});
+
+    	function changeDirection(obj, directionID){
+    		var indicatorID = obj.attr('indicatorID');
+    		var clickedObjs = obj.closest("tr").children();
+    		$.post('changeDirection',{indicatorID: indicatorID, directionID: directionID, fiscalYear:@fiscalYear }, function(data){
+    			$.each(clickedObjs, function(index,obj){
+    				var classes = obj.className.split(" ").filter(function(c) {
+    					return c.lastIndexOf("css", 0) !== 0;
+    				});
+    				obj.className = $.trim(classes.join(" "));
+    				$.each(classes, function(index, c){
+    					if (c.indexOf("Color") !== -1){
+    						$(obj).addClass(data[c]);
+    					}
+    				});
+    			});
+    		});
+    	}
+    	function changeDirectionUndoable(obj, directionID, oldDirectionID){
+    		changeDirection(obj, directionID);
+    		undoManager.add({
+    			undo: function() {
+    				changeDirection(obj, oldDirectionID);
+    			},
+    			redo: function(){
+    				changeDirection(obj, directionID);
+    			}
+    		});
+    	}
+    	function changeThreshold(obj, thresholdID){
+    		var indicatorID = obj.attr('indicatorID');
+    		var clickedObjs = obj.closest("tr").children();
+    		$.post('changeThreshold',{indicatorID: indicatorID, thresholdID: thresholdID, fiscalYear:@fiscalYear }, function(data){
+    			$.each(clickedObjs, function(index,obj){
+    				var classes = obj.className.split(" ").filter(function(c) {
+    					return c.lastIndexOf("css", 0) !== 0;
+    				});
+    				obj.className = $.trim(classes.join(" "));
+    				$.each(classes, function(index, c){
+    					if (c.indexOf("Color") !== -1){
+    						$(obj).addClass(data[c]);
+    					}
+    				});
+    			});
+    		});
+    	}
+    	function changeThresholdUndoable(obj, thresholdID, oldThresholdID){
+    		changeThreshold(obj, thresholdID);
+    		undoManager.add({
+    			undo: function() {
+    				changeThreshold(obj, oldThresholdID);
+    			},
+    			redo: function(){
+    				changeThreshold(obj, thresholdID);
+    			}
+    		});
+    	}
+
+    	function changeFormat(obj, formatID){
+    		var indicatorID = obj.attr('indicatorID');
+    		var clickedObjs = obj.closest("tr").children();
+    		$.post('changeFormat',{indicatorID: indicatorID, formatID: formatID}, function(data){
+    			var formatStr = data.formatStr;
+    			$.each(clickedObjs, function(index,obj){
+    				var cell = $(this).children('.pr-input-val').first();
+    				var cellSup = $(this).children('.pr-input-sup').first();
+    				if (cell.length > 0){
+    					var value = cell.val()
+    					var formatedValue = value;
+    					if (value !== ""){ 
+    						var isString = isNaN(parseInt(value.replace('$','')));
+    						if (!isString){
+    							value = value.replace(/[^\d\.\-]/g, "");
+    							formatedValue = numeral(value).format(formatStr);
+    						}
+    						cell.val(formatedValue);
+    						cell.parent().children('.tdValue').html(formatedValue+ "<sup>" + cellSup.val() + "</sup>");
+    						cell.parent().parent().attr('formatID',formatID);
+    						cell.parent().parent().attr('formatStr',formatStr);
+
+    						var field = cell.parent().attr("field");
+    						var parameters = {
+    							indicatorID: indicatorID,
+    							updateProperty: field,
+    							updateValue: formatedValue,
+    							updateValueSup: "%NULL%",
+    							fiscalYear: @Model.Fiscal_Year
+    							};
+    						$.ajax({
+    							url: 'setValue',
+    							type: 'POST',
+    							data: JSON.stringify(parameters),
+    							contentType: 'application/json; charset=utf-8',
+    							async:false,
+    							success: function (result) {
+    							},
+    							error: function (request){
+    							}
+    						}); 
+    					}}
+    			});
+    		});
+    	}
+
+    	function changeFormatUndoable(obj, formatID, oldFormatID){
+    		changeFormat(obj, formatID);
+    		undoManager.add({
+    			undo: function() {
+    				changeFormat(obj, oldFormatID);
+    			},
+    			redo: function(){
+    				changeFormat(obj, formatID);
+    			}
+    		});
+    	}
+    	function changeColor(obj, colorID){
+    		var indicatorID = obj.attr('indicatorID');
+    		var clickedObjs = obj.closest("tr").children();
+    		$.post('changeColor',{indicatorID: indicatorID, colorID: colorID, fiscalYear:@fiscalYear }, function(data){
+    			$.each(clickedObjs, function(index,obj){
+    				var classes = obj.className.split(" ").filter(function(c) {
+    					return c.lastIndexOf("css", 0) !== 0;
+    				});
+    				obj.className = $.trim(classes.join(" "));
+    				$.each(classes, function(index, c){
+    					if (c.indexOf("Color") !== -1){
+    						$(obj).addClass(data[c]);
+    					}
+    				});
+    			});
+    		});
+    	}
+
+    	function changeColorUndoable(obj, colorID, oldColorID){
+    		changeColor(obj, colorID);
+    		undoManager.add({
+    			undo: function() {
+    				changeColor(obj, oldColorID);
+    			},
+    			redo: function(){
+    				changeColor(obj, colorID);
+    			}
+    		});
+    	}
+
+    	function setCustomColor(obj, color){
+    		var indicatorID = obj.attr('indicatorID');
+    		var field = obj.attr('field');
+    		$.post('setCustomColor', {indicatorID: indicatorID, field: field, color: color, fiscalYear: @fiscalYear }, function(data){
+    			var classes = $(obj).attr('class').split(" ").filter(function(c) {
+    				return c.lastIndexOf("css", 0) !== 0;
+    			});
+    			obj.attr('class', $.trim(classes.join(" ")));
+    			$(obj).addClass(color);
+    			var oldColorID = $(obj).closest('tr').attr('colorID');
+    			if (oldColorID !== "3"){
+    				changeColorUndoable(obj, 1, oldColorID);
+    			}
+    		})
+    	}
+    	function setCustomColorUndoable(obj, color, oldColor){
+    		setCustomColor(obj, color);
+    		undoManager.add({
+    			undo: function() {
+    				setCustomColor(obj, oldColor);
+    			},
+    			redo: function(){
+    				setCustomColor(obj, color);
+    			}
+    		})
+    	}
+
+    	@if (ViewBag.PRCols != null)
+        {
+        <text>
+    	function addNewIndicator(obj, newIndicatorID, undo){
+    		exist = (newIndicatorID !== null);
+    		var coeID = obj.closest( "tr" ).attr("coeID");
+    		var areaID = obj.closest( "tr" ).attr("areaID");
+    		var indicatorID = obj.attr("indicatorID") || obj.closest("tr").attr("indicatorID");
+    		var clickedRow = obj.closest( "tr" );
+    		var definitions = obj.closest( "table" ).hasClass("PRDef");
+    		$.post('newIndicatorAtPR', { fiscalYear: @ViewBag.fiscalYear, areaID: areaID, coeID: coeID, indicatorID: indicatorID, newIndicatorID: newIndicatorID}, function(returnedData){
+    			@{var html = "";
+				  html += "<td class='prtd-id'><a class='row-up'><i class='fa fa-sort-asc'></i></a>#<a class='row-down'><i class='fa fa-sort-desc'></i></a></td>";
+                  html += "<td class='newrow-td'><input class='newrow-text' field='Indicator' type='text'></td>";
+                  for (var i = 0; i < ViewBag.PRCols.GetLength(0); ++i)
+                  {
+                      html += "<td class='newrow-td'><input class='newrow-text' field='" + ViewBag.PRCols[i, 3] + "' type='text'>";
+                      html += "<input class='newrow-text' field='" + ViewBag.PRCols[i, 3] + "_Sup" + "' type='text'></td>";
+                  }}
+    			@{var htmlExist = "";
+                  htmlExist += "<td class='prtd-id'><a class='row-up'><i class='fa fa-sort-asc'></i></a>#<a class='row-down'><i class='fa fa-sort-desc'></i></a></td>";
+                  htmlExist += "<td colspan='1' class='newrow-td prtd-title' field='Indicator'></td>";
+                  for (var i = 0; i < ViewBag.PRCols.GetLength(0); ++i)
+                  {
+					  htmlExist += "<td colspan='1' class='newrow-td prtd " + ViewBag.PRCols[i, 2] + "' field='" + ViewBag.PRCols[i, 3] + "'></td>";
+                  }}
+    			htmlColumns = "@Html.Raw(html)";
+    			htmlExistColumns = "@Html.Raw(htmlExist)";
+    			if (!exist){
+    				clickedRow.after("<tr class='newrow prrow' indicatorID='" + returnedData.indicatorID + "' areaID='" + returnedData.newAreaID + "' mapID = '" + returnedData.mapID + "' coeID = '" + coeID + "' colorID='1' directionID='1' thresholdID='1'>" + (!definitions ? htmlColumns : htmlColumnsDef));
+    				$(".newrow-text").on('change keyup paste',function(e){
+    					var indicatorID = $(this).closest( "tr" ).attr("indicatorID");
+    					var field = $(this).attr("field");
+    					var parameters = {
+    						indicatorID: indicatorID,
+    						updateProperty: field,
+    						updateValue: $( this ).val(),
+    						updateValueSup: "%NULL%",
+    						fiscalYear: @Model.Fiscal_Year,
+    					};
+    					$.ajax({
+    						url: 'setValue',
+    						type: 'POST',
+    						data: JSON.stringify(parameters),
+    						contentType: 'application/json; charset=utf-8',
+    						success: function (result) {
+    						},
+    						error: function (request){
+    						}
+    					}); 
+    				});
+    			} else {
+    				$('.justClicked').attr('mapid',returnedData.mapID);
+    				$('.justClicked').addClass('clicked');
+    				$('.justClicked').removeClass('justClicked');
+    				if (returnedData.newAreaID == areaID){
+    					var newMap = $('.new-map');
+    					newMap.after("<tr class='prrow newrow' indicatorID='" + returnedData.indicatorID + "' areaID='" + returnedData.newAreaID + "' mapID = '" + returnedData.mapID + "' coeID = '" + coeID + "' colorID= '" + returnedData.colorID + "' directionID= '" + returnedData.directionID + "' thresholdID= '" + returnedData.thresholdID + "'>" + htmlExistColumns);
+    				} else if (returnedData.newAreaID != 0) {
+    					correctAreaRow = $('[coeid="' + coeID + '"][areaid="' + returnedData.newAreaID + '"]').first();
+    					correctAreaRow.after("<tr class='prrow newrow' indicatorID='" + returnedData.indicatorID + "' areaID='" + returnedData.newAreaID + "' mapID = '" + returnedData.mapID + "' coeID = '" + coeID + "' colorID= '" + returnedData.colorID + "' directionID= '" + returnedData.directionID + "' thresholdID= '" + returnedData.thresholdID + "'>" + htmlExistColumns);
+    				}
+    				var newrowTds = $('.newrow-td')
+    				$.each(newrowTds,function(index, obj){
+    					var indicatorID = $(obj).closest( "tr" ).attr("indicatorID");
+    					$(obj).attr('indicatorID', indicatorID);
+    					var field = $(obj).attr("field");
+    					$.get('getValue', { indicatorID: indicatorID, field:field, fiscalYear: '@fiscalYear' }, function(data){
+    						var value = data.Value;
+    						if (value == null) value = "";
+    						var valueSup = data.Value_Sup;
+    						if (valueSup == null) valueSup = "";
+    						$(obj).html(value + "<sup>" + valueSup + "</sup>");
+    						$(obj).addClass(data.Color);
+    						$(obj).removeClass("newrow-td");
+    					});
+    				});
+    				if (undo){
+    					$('.new-map').remove()
+    					clickedRow.next().removeClass('newrow');
+    				}
+    			}
+    		});
+    	}
+    	</text>
+        }
+
+    	removeIndicatorUndoable = function(obj, prevObj, deletedRow, indicatorID){
+    		removeIndicator(obj);
+    	};
+    	function removeIndicator(obj){
+    		if (obj.closest( "tr" ).hasClass("prrow-isNValue")){
+    			obj.closest( "tr" ).prev().children().attr('rowspan',1);
+    		}
+    		if (obj.closest( "tr" ).hasClass("prrow-hasNValue")){
+    			obj.closest( "tr" ).next().remove();
+    		}
+    		var mapID = obj.closest( "tr" ).attr("mapID");
+    		$('tr[mapID="' + mapID + '"]').remove()
+    		$.post('deleteCoEMaps', { mapID : mapID});
+    	};
+
+    	merge = function(cells){
+    		var i = 0;
+    		$.each(cells,function(index,value){
+    			currentEle = $(this);
+
+    			var indicatorID = currentEle.closest( "tr" ).attr("indicatorID");
+    			var field =currentEle.attr("field");
+    			var parameters = {
+    				indicatorID: indicatorID,
+    				updateProperty: field,
+    				updateValue: "=",
+    				updateValueSup: "",
+    				fiscalYear: @Model.Fiscal_Year
+    				};
+    			$.ajax({
+    				url: 'setValueOld',
+    				type: 'POST',
+    				data: JSON.stringify(parameters),
+    				contentType: 'application/json; charset=utf-8',
+    				async:false,
+    				success: function (result) {
+    				},
+    				error: function (request){
+    				}
+    			}); 
+
+    			colSpanCell = currentEle.prevAll('.to-merge-start');
+    			colSpan = parseInt(colSpanCell.attr('colSpan'));
+
+    			var owncolSpan = parseInt(currentEle.attr('colSpan'))
+    			colSpanCell.attr('colSpan', colSpan + owncolSpan );
+    			currentEle.children('.tdValue').html("");
+    			currentEle.children('.pr-input').val("");
+    			currentEle.hide();
+    			i++;
+    		});
+    	};
+
+    	unmerge = function(uiSelected){
+    		var selectedCells = uiSelected;
+    		$.each(selectedCells,function(index,value){
+    			var cell = $(this);
+    			var oldColspan = cell.attr('colspan');
+    			var indicatorID = cell.attr('indicatorID');
+    			var startField = cell.attr('field');
+    			var allFields = [];
+    			var allFieldClasses = [];
+    			var startFieldIndex;
+    			@foreach (var field in allFields)
+				{
+					@:allFields.push('@field');   
+    			    			                }
+    			@foreach (var fieldClass in allFieldClasses)
+				{
+					@:allFieldClasses.push('@fieldClass');   
+    			    			                }
+    			jQuery.each(allFields, function(index, item){
+    				if (item === startField){
+    					startFieldIndex = index;
+    				}
+    			});
+    			var parameters = { indicatorID: indicatorID, startField: startField, allFields: allFields}
+    			$.ajax({
+    				type:"POST",
+    				url: "unmergeCell",
+    				data: parameters,
+    				traditional: true,
+    			});
+    			for(i = oldColspan - 1; i > 0; i--){
+    				cell.attr('colspan','1');
+    				cell.nextAll().eq(i-1).show();
+    			}
+    		});
+    	}
+
+    	addNValues = function(clickedCell){
+    		var clickRow = clickedCell.closest('tr');
+    		if (!clickedCell.closest('table').hasClass('PRDef')){
+    			var indicatorID = clickedCell.attr("indicatorID");
+
+    			@{var htmlNValue = "";
+                  if (ViewBag.PRCols != null)
+                  {
+                      htmlNValue += "<td></td>";
+                      htmlNValue += "<td></td>";
+					  htmlNValue += "<td></td>";
+                      for (var i = 0; i < ViewBag.PRCols.GetLength(0); ++i)
+                      {
+                          //htmlNValue += "<td class='newrow-td prtd' colSpan='1' field='" + ViewBag.PRCols[i, 3] + "'></td>";
+                          htmlNValue += "<td align='center' field='" + ViewBag.PRCols[i, 3] + "' colspan='1', rowspan='1', class='newrow-td prtd'>";
+                          htmlNValue += "<input class='pr-input pr-input-val' value='' oldvalue=''/>";
+                          htmlNValue += "<input class='pr-input pr-input-sup' value='' oldvalue=''/>";
+                          htmlNValue += "<div class='tdValue'></div>";
+						  htmlNValue += "</td>";
+                      }
+                  }}
+
+    			$.post('addNValues', { indicatorID : indicatorID, fiscalYear: @ViewBag.fiscalYear }, function(returnedData){
+    				var html = "@Html.Raw(htmlNValue)";
+    				clickRow.closest('tr').addClass('prrow-hasNValue');
+    				clickRow.closest('tr').after("<tr class='newrow-NValue prrow prrow-isNValue' indicatorID='" + returnedData.indicatorID + "' mapID = '" + returnedData.mapID + "' coeID = '" + returnedData.coeID + "' formatID='' formatStr=''>" + html);
+    				$.each($('.newrow-td'),function(index, obj){
+    					var indicatorID = returnedData.indicatorID;
+    					$(obj).attr('indicatorID', indicatorID);
+    					var field = $(obj).attr("field");
+    					$.get('getValue', { indicatorID: indicatorID, field:field, fiscalYear: '@fiscalYear' }, function(data){
+    						if (data.Value != null && data.Value_Sup != null){
+    							//$(obj).html(data.Value + "<sup>" + data.Value_Sup + "</sup>");
+    							$(obj).children('.tdValue').html(data.Value+ "<sup>" + data.Value_Sup + "</sup>");
+    							$(obj).children('.pr-input-val').val(data.Value)
+    							$(obj).children('.pr-input-sup').val(data.Value_Sup)
+    						}
+    						$(obj).removeClass("newrow-td");
+    					});
+    				});
+    			});
+    		}
+    	}
+
+    	tdToInput = function(element){
+    		element.children('.pr-input').hide();
+    		element.children('.tdValue').show();
+    	}
+    	$(document).on('click','table td.prtd', function (e) {
+    		if (!$(e.target).hasClass('pr-input')){
+    			updateVal($(this));
+    		}
+    	});
+    	function updateVal(element, sup) {
+    		var nValueColDiff = 3;
+    		var inputEl = element.children('.pr-input');
+    		inputEl.show();
+    		if (sup === true){
+    			inputEl.last().focus();
+    		}else {
+    			inputEl.first().focus();
+    		}
+    		var tdEl = element.children('.tdValue');
+    		tdEl.hide();
+    		selectObj.on( "selectablestart", function( event, ui ) {
+    			tdToInput(element); 
+    			selectObj.off( "selectablestart");
+    		} );
+    		$('body').unbind("click").click(function (evt) {
+    			if (evt !== null){
+    				if (!$(evt.target).hasClass('pr-input')){
+    					tdToInput(element);
+    				};
+    			}
+    		});
+    		inputEl.unbind("keydown").keydown(function (evt) {
+    			if (evt.which == 13 || evt.keyCode == 27) {
+    				tdToInput(element);
+    			} else {
+    				var newTD;
+    				var focusEl = $(document.activeElement);
+    				var caretPos = getInputSelection(document.activeElement).start;
+    				var textLen = focusEl.val().length 
+    				switch(evt.keyCode)
+    				{
+    					// left arrow
+    					case 37:
+    						if (caretPos === 0){
+    							
+    							newTD = $(this).prevAll(':visible.pr-input-val').first();
+    							if (newTD.length !== 0){
+    								newTD.focus();
+    							} else {
+    								newTD = $(this).parent().prevAll(':visible.prtd').first();
+    								if (newTD.length === 0){
+    									break;
+    								}
+    								tdToInput(element);
+    								updateVal(newTD, true);
+    							}
+    						}
+    						break;
+    						// right arrow
+    					case 39:
+    						if (caretPos === textLen){
+    							newTD = $(this).nextAll(':visible.pr-input-sup').first();
+    							if (newTD.length !== 0){
+    								newTD.focus();
+    							} else {
+    								newTD = $(this).parent().nextAll(':visible.prtd').first();
+    								if (newTD.length === 0){
+    									break;
+    								}
+    								tdToInput(element);
+    								updateVal(newTD);
+    							}
+    						}
+    						break;
+    						// up arrow
+    					case 40:
+    						if (focusEl.hasClass('pr-input-def') && caretPos === textLen || !focusEl.hasClass('pr-input-def')){
+    							var index = $(this).parent().index();
+    							var oldTR = $(this).parent().parent();
+    							var newTR = $(this).parent()
+                                        .parent()
+                                        .nextAll(':not(".prrow-area")').first();
+    							if (newTR.children().length + nValueColDiff - 1< index){
+    								newTR= newTR.next();
+    							}
+    							if (oldTR.hasClass('prrow-isNValue') && !oldTR.hasClass('newrow-NValue') ){
+    								index += nValueColDiff;
+    							}
+    							if (newTR.hasClass('prrow-isNValue') && !newTR.hasClass('newrow-NValue') ){ 
+    								index -= nValueColDiff;
+    							};
+    							newTD = newTR
+                                        .children('td')
+                                        .eq(index)
+                                        .first()
+                                        .focus();
+    							if (newTD.length === 0){
+    								break;
+    							}
+    							tdToInput(element);
+    							updateVal(newTD);
+    						}
+    						break;
+    						// down arrow
+    					case 38:
+    						if (focusEl.hasClass('pr-input-def') && caretPos === 0 || !focusEl.hasClass('pr-input-def')){
+    							var index = $(this).parent().index();
+    							var oldTR = $(this).parent().parent();
+    							var newTR = $(this).parent()
+										.parent()
+										.prevAll(':not(".prrow-area")').first();
+    							if (newTR.children().length + nValueColDiff - 1 < index){
+    								newTR=newTR.prev();
+    							}
+    							if (oldTR.hasClass('prrow-isNValue') && !oldTR.hasClass('newrow-NValue') ){ 
+    								index += nValueColDiff;
+    							}
+    							if (newTR.hasClass('prrow-isNValue') && !newTR.hasClass('newrow-NValue') ){ 
+    								index -= nValueColDiff;
+    							};
+    							var newTD = newTR
+                                        .children('td')
+                                        .eq(index)
+                                        .first()
+                                        .focus();
+    							if (newTD.length === 0){
+    								break;
+    							}
+    							tdToInput(element);
+    							updateVal(newTD);
+    						}
+    						break;
+    				}
+    			};
+    		});
+    	}
+
+    	$(document).on('keyup', '.pr-input',function(e){
+    		if (e.ctrlKey && e.keyCode === 89){
+    			return;
+    		}
+    		if (e.ctrlKey && e.keyCode === 90){
+    			return;
+    		}
+    		if (e.keyCode === 17 || e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 39 || e.keyCode === 40){
+    			return;
+    		}
+    		if (e.keyCode == 45 || e.keyCode == 36 || e.keyCode == 35 || e.keyCode == 33 || e.keyCode == 34){
+    			return
+    		}
+    		var currentEle = $(this).parent().children('.pr-input').first();
+    		var currentEleSup = $(this).parent().children('.pr-input-sup').first();
+    		var formatStr = $(this).parent().parent().attr('formatStr');
+
+    		var updateValue = currentEle.val();
+    		var isString = isNaN(parseInt(updateValue.replace('$','')));
+    		if (!isString){
+    			var updateValue = updateValue.replace(/[^\d\.\-]/g, "");
+    		}
+
+    		var updateValueSup = currentEleSup.val();
+    		var oldValue = currentEle.attr('oldvalue')
+    		var oldValueSup = currentEleSup.attr('oldvalue')
+    		var indicatorID = currentEle.parent().attr('indicatorID');
+    		var field  = currentEle.parent().attr('field');
+    		endEditUndoable(currentEle, currentEleSup, formatStr, indicatorID, field, updateValue, updateValueSup, oldValue, oldValueSup, false);
+    	});
+
+    	endEditUndoable = function(currentEle, currentEleSup, formatStr, indicatorID, field, updateValue, updateValueSup, oldValue, oldValueSup, update){
+    		endEdit(currentEle, currentEleSup, formatStr ,indicatorID, field, updateValue, updateValueSup, oldValue, oldValueSup, false);
+    		undoManager.add({
+    			undo: function(){
+    				endEdit(currentEle, currentEleSup, formatStr, indicatorID, field, oldValue, oldValueSup, updateValue, updateValueSup, true);
+    			},
+    			redo: function(){
+    				endEdit(currentEle, currentEleSup, formatStr, indicatorID, field, updateValue, updateValueSup, oldValue, oldValueSup, true);
+    			}
+    		});
+    	};
+
+    	endEdit = function(currentEle, currentEleSup, formatStr, indicatorID, field, updateValue, updateValueSup, oldValue, oldValueSup, update){
+    		currentEle.attr('oldValue', updateValue);
+    		var isString = isNaN(parseInt(updateValue.replace('$','')));
+    		if (!isString){
+    			if (formatStr !== ""){
+    				updateValue = numeral(updateValue).format(formatStr);
+    			}
+    		}
+    		var colorElement = $(currentEle).parent();
+    		if (currentEleSup != null){
+    			currentEleSup.attr('oldValue', updateValueSup);
+    		}
+    		var parameters = {
+    			indicatorID: indicatorID,
+    			updateProperty: field,
+    			updateValue: updateValue,
+    			updateValueSup: updateValueSup,
+    			fiscalYear: @Model.Fiscal_Year,
+    		};
+    		$.ajax({
+    			url: 'setValueOld',
+    			type: 'POST',
+    			data: JSON.stringify(parameters),
+    			contentType: 'application/json; charset=utf-8',
+    			success: function (result) {
+    				changeColor(colorElement, -1)
+    			},
+    			error: function (request){
+    			}
+    		});
+    		if (update){
+    			currentEle.val(updateValue);
+    		}
+    		currentEle.parent().children('.tdValue').html(updateValue + "<sup>" + updateValueSup + "</sup>");
+    	}
+
+
+
+    	$(".prarea").dblclick(function (e) {
+    		var mapID = e.target.attributes.getNamedItem('mapID');
+    		var currentEle = $(this);
+    		e.stopPropagation();
+            
+    		$.get('getAreaMap', { mapID: mapID.value, fiscalYear: @Model.Fiscal_Year}, function (data) {
+    			updateObjVal(currentEle, mapID.value, data);
+    		});
+    	});
+    	function updateObjVal(currentEle, mapID, value) {
+    		$(currentEle).html('<textarea id="newEdit" mapID ="' + mapID + 
+                                    '" value="' + value + 
+                                    '" class="thVal thVal-Obj pr-edit-textarea" rows="4">' + value +
+                                    '</textarea>'
+                                );
+    		$(".thVal").focus();
+
+    		$('body').unbind("click").click(function (evt) {
+    			var objective = $.trim($(".thVal").val());
+    			endEditObjUndoable(evt, currentEle, mapID, objective, value);
+    		});
+    	};
+    	endEditObj = function (evt, currentEle, mapID, objective, value) {
+    		if (evt !== null){
+    			if (evt.target.id == "newEdit") return;
+    		}
+    		var area = $(currentEle);
+    		var parameters = {
+    			mapID: mapID,
+    			objective: objective,
+    			fiscalYear: @Model.Fiscal_Year,
+    		};
+    		$.ajax({
+    			url: 'setAreaMap',
+    			type: 'POST',
+    			data: JSON.stringify(parameters),
+    			contentType: 'application/json; charset=utf-8',
+    			success: function (result) {
+    			},
+    			error: function (request){
+    			}
+    		});
+    		$(currentEle).html("<b>" + area.attr("area") + " </b><br/>" + objective);
+    		currentEle = null;
+    		$('body').unbind("click")
+    	};
+		
+    	saveComparator =function(elements, fields, fieldQs, values, oldValues, undo){
+    		$.each(elements, function(index,value){
+    			var indicatorID = $(this).closest( "tr" ).attr("indicatorID");
+    			if (undo !== true){
+    				$(this).first().parent().children('[field="' + fields[index] +'"]').addClass('comp-saved');
+    			} else {
+    				$(this).first().parent().children('[field="' + fields[index] +'"]').removeClass('comp-saved');
+    			}
+    			$(this).first().parent().children('[field="' + fieldQs[index] +'"]').children('.pr-input').val(values[index]);
+    			$(this).first().parent().children('[field="' + fieldQs[index] +'"]').children('.tdValue').html(values[index]);
+    			var parameters = {
+    				indicatorID: indicatorID,
+    				updateProperty: fieldQs[index],
+    				updateValue: values[index],
+    				updateValueSup: "%NULL%",
+    				fiscalYear: @Model.Fiscal_Year,
+    			};
+    			$.ajax({
+    				url: 'setValue',
+    				type: 'POST',
+    				data: JSON.stringify(parameters),
+    				contentType: 'application/json; charset=utf-8',
+    				success: function (result) {
+    				},
+    				error: function (request){
+    				}
+    			}); 
+    		});
+    	};
+
+    	undoManager = new UndoManager();
+    	$.ctrl = function(key, callback, args) {
+    		var isCtrl = false;
+    		$(document).keydown(function(e) {
+    			if(!args) args=[]; // IE barks when args is null
+        
+    			if(e.ctrlKey) isCtrl = true;
+    			if(e.keyCode == key.charCodeAt(0) && isCtrl) {
+    				callback.apply(this, args);
+    				return false;
+    			}
+    		}).keyup(function(e) {
+    			if(e.ctrlKey) isCtrl = false;
+    		});        
+    	};
+
+    	$.ctrl("Z", function(){
+    		undoManager.undo();
+    	});
+
+    	$.ctrl("Y", function(){
+    		undoManager.redo();
+    	});
+
+
+    	addNewIndicatorUndoable = function(obj, indicatorID, existing){
+    		addNewIndicator(obj, indicatorID);
+    		undoManager.add({
+    			undo: function(){
+    				if (existing){
+    					var removeObj = $('.newrow').first();
+    				} else {
+    					var removeObj = obj.closest('tr').next().first();
+    				}
+    				removeIndicator(removeObj, indicatorID);
+    			},
+    			redo: function (){
+    				addNewIndicator(obj, indicatorID);
+    			}
+    		});
+    	};
+    	removeIndicatorUndoable = function(obj, prevObj, deletedRow, indicatorID){
+    	    removeIndicator(obj);
+    	    undoManager.add({
+    	        undo: function() {
+    	            //deletedRow.insertAfter(prevObj.closest('tr'));
+    	            prevObj.closest('tr').after("<tr class='new-map'><td colspan=99>'ADD'</td></tr>");
+    	            addNewIndicator(prevObj, indicatorID, true);
+    	        },
+    	        redo: function(){
+    	        	removeIndicator(prevObj.closest('tr').next().first());
+    	        }
+    	    });
+    	};
+
+    	endEditDefUndoable = function(evt, currentEle, indicatorID, field, updateValue, value){
+    		endEditDef(evt, currentEle, indicatorID, field, updateValue, value);
+    		undoManager.add({
+    			undo: function(){
+    				endEditDef(evt, currentEle, indicatorID, field, value, updateValue);
+    			},
+    			redo: function(){
+    				endEditDef(evt, currentEle, indicatorID, field, updateValue, value);
+    			}
+    		});
+    	};
+    	endEditObjUndoable = function(evt, currentEle, mapID, objective, value){
+    		endEditObj(evt, currentEle, mapID, objective, value);
+    		undoManager.add({
+    			undo: function(){
+    				endEditObj(evt, currentEle, mapID, value, objective);;
+    			},
+    			redo: function(){
+    				endEditObj(evt, currentEle, mapID, objective, value);;
+    			}
+    		});
+    	};
+    	mergeUndoable = function(toMerge, unmergeCells){
+    		merge(toMerge);
+    		undoManager.add({
+    			undo: function(){
+    				unmerge(unmergeCells);
+    			},
+    			redo: function(){
+    				merge(toMerge);
+    			}
+    		});
+    	};
+    	unmergeUndoable = function( toUnmerge, toMerge){
+    		unmerge(toUnmerge);
+    		undoManager.add({
+    			undo: function(){
+    				merge(toMerge);
+    			},
+    			redo: function(){
+    				unmerge(toUnmerge);
+    			}
+    		});
+    	};
+    	addNValuesUndoable = function(clickedCell){
+    		addNValues(clickedCell);
+    		undoManager.add({
+    			undo: function(){
+    				var removeObj = clickedCell.closest('tr').next().first();
+    				var indicatorID = removeObj.attr('indicatorID');
+    				removeIndicator(removeObj, indicatorID);
+    			},
+    			redo: function(){
+    				addNValues(clickedCell);
+    			}
+    		});
+    	};
+    	saveComparatorUndoable = function(elements, fields, fieldQs, values, oldValues){
+    		saveComparator(elements, fields, fieldQs, values, oldValues);
+    		undoManager.add({
+    			undo: function(){
+    				saveComparator(elements, fields, fieldQs, oldValues, values, true);
+    			},
+    			redo: function(){
+    				saveComparator(elements, fields, fieldQs, values, oldValues);
+    			}
+    		});
+    	};
+
+		$('#the-node').contextMenu({
+            selector: 'td', 
+            callback: function(key, options) {
+            },
+
+            items: {
+                "addNValues": {
+                    name: "Add N Values to this Indicator",
+                    callback: function(key,options){
+                    	addNValuesUndoable($(this));
+                    }
+                },
+
+                "saveComperatorValue":{
+                    "name": "Save Comparator Value",
+                    "items": {
+                        "toQ1": {
+                            name: "Q1",
+                            callback: function(key,options){
+                            	var toSave = $(".ui-selected");
+                            	if (toSave.length === 0){
+                            		toSave.push($(this));
+                            	}
+                            	var fields = [];
+                            	var fieldQs = [];
+                            	var values = [];
+                            	var oldValues = [];
+                            	var elements = [];
+                            	$.each(toSave, function(index,value){
+                            		var quarter = 1;
+                            		var field = "@FiscalYear.FYStrFull("FY_", fiscalYear)" + "Comparator";
+                            		var fieldQ = "@FiscalYear.FYStrFull("FY_", fiscalYear)" + "Comparator_Q" + quarter;
+                            		var value =  $(this).first().parent().children('[field="' + field +'"]').children('.pr-input').first().val();
+                            		var Oldvalue =  $(this).first().parent().children('[field="' + fieldQ +'"]').children('.pr-input').first().val();
+                            		fields.push(field);
+                            		fieldQs.push(fieldQ);
+                            		values.push(value);
+                            		oldValues.push(Oldvalue);
+                            		elements.push($(this));
+                            	});
+                            	saveComparatorUndoable(elements, fields, fieldQs, values, oldValues);
+                            }
+                        },
+                        "toQ2": {
+                            name: "Q2",
+                            callback: function(key,options){
+                            	var toSave = $(".ui-selected");
+                            	if (toSave.length === 0){
+                            		toSave.push($(this));
+                            	}
+                            	var fields = [];
+                            	var fieldQs = [];
+                            	var values = [];
+                            	var oldValues = [];
+                            	var elements = [];
+                            	$.each(toSave, function(index,value){
+                            		var quarter = 2;
+                            		var field = "@FiscalYear.FYStrFull("FY_", fiscalYear)" + "Comparator";
+                            		var fieldQ = "@FiscalYear.FYStrFull("FY_", fiscalYear)" + "Comparator_Q" + quarter;
+                            		var value =  $(this).first().parent().children('[field="' + field +'"]').children('.pr-input').first().val();
+                            		var Oldvalue =  $(this).first().parent().children('[field="' + fieldQ +'"]').children('.pr-input').first().val();
+                            		fields.push(field);
+                            		fieldQs.push(fieldQ);
+                            		values.push(value);
+                            		oldValues.push(Oldvalue);
+                            		elements.push($(this));
+                            	});
+                            	saveComparatorUndoable(elements, fields, fieldQs, values, oldValues);
+                            }
+                        },
+                        "toQ3": {
+                            name: "Q3",
+                            callback: function(key,options){
+                            	var toSave = $(".ui-selected");
+                            	if (toSave.length === 0){
+                            		toSave.push($(this));
+                            	}
+                            	var fields = [];
+                            	var fieldQs = [];
+                            	var values = [];
+                            	var oldValues = [];
+                            	var elements = [];
+                            	$.each(toSave, function(index,value){
+                            		var quarter = 3;
+                            		var field = "@FiscalYear.FYStrFull("FY_", fiscalYear)" + "Comparator";
+                            		var fieldQ = "@FiscalYear.FYStrFull("FY_", fiscalYear)" + "Comparator_Q" + quarter;
+                            		var value =  $(this).first().parent().children('[field="' + field +'"]').children('.pr-input').first().val();
+                            		var Oldvalue =  $(this).first().parent().children('[field="' + fieldQ +'"]').children('.pr-input').first().val();
+                            		fields.push(field);
+                            		fieldQs.push(fieldQ);
+                            		values.push(value);
+                            		oldValues.push(Oldvalue);
+                            		elements.push($(this));
+                            	});
+                            	saveComparatorUndoable(elements, fields, fieldQs, values, oldValues);
+                            }
+                        },
+                        "toQ4": {
+                            name: "Q4",
+                            callback: function(key,options){
+                            	var toSave = $(".ui-selected");
+                            	if (toSave.length === 0){
+                            		toSave.push($(this));
+                            	}
+                            	var fields = [];
+                            	var fieldQs = [];
+                            	var values = [];
+                            	var oldValues = [];
+                            	var elements = [];
+                            	$.each(toSave, function(index,value){
+                            		var quarter = 4;
+                            		var field = "@FiscalYear.FYStrFull("FY_", fiscalYear)" + "Comparator";
+                            		var fieldQ = "@FiscalYear.FYStrFull("FY_", fiscalYear)" + "Comparator_Q" + quarter;
+                            		var value =  $(this).first().parent().children('[field="' + field +'"]').children('.pr-input').first().val();
+                            		var Oldvalue =  $(this).first().parent().children('[field="' + fieldQ +'"]').children('.pr-input').first().val();
+                            		fields.push(field);
+                            		fieldQs.push(fieldQ);
+                            		values.push(value);
+                            		oldValues.push(Oldvalue);
+                            		elements.push($(this));
+                            	});
+                            	saveComparatorUndoable(elements, fields, fieldQs, values, oldValues);
+                            }
+                        },
+    	            }
+                },
+
+                 separator1: "-----",
+
+                "colorSettings": {
+                    "name": "Color Type",
+                    "items": {
+                        @foreach (var color in Model.allColors)
+                        {
+                        <text>
+                        "Color_@color.Color_ID" : { "name": "Change to @color.Color_Type",
+                                className: 'color-choice',
+                                callback:function(key, options){
+                                    var obj = $(this);
+                                    var colorID= @color.Color_ID;
+                                	var oldColorID = $(this).closest('tr').attr('colorID');
+                                	changeColorUndoable(obj, colorID, oldColorID);
+                                },
+                            },
+                        </text>
+                        }
+                    },
+                },
+                "directionsSettings": {
+                    "name": "Color Direction",
+                    "items": {
+                        @foreach (var direction in Model.allDirections)
+                        {
+                        <text>
+                        "Direction_@direction.Direction_ID" : { "name": "Change to @direction.Direction",
+                            className: 'color-choice',
+                            callback:function(key, options){
+                                var obj = $(this);
+                                var directionID= @direction.Direction_ID;
+                                    var oldDirectionID = $(this).closest('tr').attr('directionID');
+                                    changeDirectionUndoable(obj, directionID, oldDirectionID);
+                                },
+                        },
+                        </text>
+                        }
+                    },
+                },
+                "thresholdSettings": {
+                    "name": "Color Threshold",
+                    "items": {
+                        @foreach (var threshold in Model.allThresholds)
+                        {
+                        <text>
+                        "Threshold_@threshold.Threshold_ID" : { "name": "Change to @threshold.Threshold",
+                            className: 'color-choice',
+                            callback:function(key, options){
+                                var obj = $(this);
+                                var thresholdID= @threshold.Threshold_ID;
+                                var oldThresholdID = $(this).closest('tr').attr('thresholdID');
+                                changeThresholdUndoable(obj, thresholdID, oldThresholdID);
+                            },
+                        },
+                        </text>
+                        }
+                    },
+                },
+
+                separator2: "-----",
+
+                "setGreen": {name: "Color Cell Green",
+                    callback: function(key, options){
+                        var color = "cssGreen";
+                        var obj = $(this)
+                        var oldColor = $.grep(obj.attr('class').split(" "), function(v, i){
+                        	return v.indexOf('css') === 0;
+                        })[0];
+                        setCustomColorUndoable(obj, color, oldColor);
+                    }
+                },
+                "setYellow": {name: "Color Cell Yellow",
+                    callback: function(key, options){
+                        var color = "cssYellow";
+                        var obj = $(this)
+                        var oldColor = $.grep(obj.attr('class').split(" "), function(v, i){
+                        	return v.indexOf('css') === 0;
+                        })[0];
+                        setCustomColorUndoable(obj, color, oldColor);
+                    }
+                },
+                "setRed": {name: "Color Cell Red",
+                    callback: function(key, options){
+                        var color = "cssRed";
+                        var obj = $(this)
+                        var oldColor = $.grep(obj.attr('class').split(" "), function(v, i){
+                        	return v.indexOf('css') === 0;
+                        })[0];
+                        setCustomColorUndoable(obj, color, oldColor);
+                    }
+                },
+
+				
+                separator3: "-----",
+
+                "formatSettings": {
+                	"name": "Format Type",
+                	"items": {
+                        @foreach (var format in Model.allFormats.OrderBy(x => x.Order))
+                        {
+                        <text>
+                    	"Color_@format.Format_ID" : { "name": "Change to @format.Format_Type",
+                    		className: 'color-choice',
+                    		callback:function(key, options){
+                    			toFormat = $('td.ui-selected');
+                    			if (toFormat.length === 0){
+                    				toFormat.push($(this));
+                    			}
+                    			$.each(toFormat,function(index,value){
+                    				var obj = $(this);
+                    				var formatID= @format.Format_ID;
+                    				var oldFormatID = $(this).closest('tr').attr('formatID');
+                    				changeFormatUndoable(obj, formatID, oldFormatID);
+                    			});
+                	        }
+                	    },
+                    	</text>
+                        }
+                    },
+                },
+
+/*                separator2: "-----",
+
+                "formatTest": {name: "FormatTest",
+                    callback: function(key,options){
+                        var formatID = 2;
+                        var obj = $(this);
+                        formatIndicator(obj, formatID);
+                    }
+                },*/
+
+            }
+        });
+        @*
+        $(document).on('click', '.row-up,.row-down', function(){
+            var row = $(this).parents("tr:first");
+            var mapID = row.attr("mapID");
+            var nValueRow;
+            if ($(row).children("td:first").attr('rowspan') == 2)
+            {
+                nValueRow = row.next(); 
+            }
+            if ($(this).is(".row-up")) {
+                var areaChange;
+                if (row.prev().attr("mapID")){
+                    areaChange = null;
+                }else if (!row.prev().prev().hasClass("prheader-Final")){
+                    areaChange = -1;
+                }
+                var intoRow;
+                if (row.prev().hasClass('prrow-isNValue')){
+                    intoRow = row.prev().prev();
+                } else {
+                    intoRow = row.prev();
+                }
+                row.insertBefore(intoRow);
+                if (nValueRow != null) { nValueRow.insertAfter(row); }
+                $.post("moveCoEMapUp",{mapID: mapID, fiscalYear: @ViewBag.fiscalYear, areaChange: areaChange});
+            } else {
+                var areaChange;
+                if (row.next().attr("mapID")){
+                   areaChange= null;
+                }else if (row.next().length !== 0){
+                    areaChange= 1;
+                }
+                if (row.next().hasClass('prrow-hasNValue') || row.next().hasClass('prrow-isNValue')){
+                    intoRow = row.next().next();
+                } else {
+                    intoRow = row.next();
+                }
+                row.insertAfter(intoRow);
+                if (nValueRow != null) { nValueRow.insertAfter(row); }
+                $.post("moveCoEMapDown",{mapID: mapID, fiscalYear: @ViewBag.fiscalYear, areaChange: areaChange});
+            }
+        });*@
+
+        $.fn.drags = function(opt) {
+            opt = $.extend({handle:"",cursor:"move"}, opt);
+
+            if(opt.handle === "") {
+                var $el = this;
+            } else {
+                var $el = this.find(opt.handle);
+            }
+
+            return $el.css('cursor', opt.cursor).on("mousedown", function(e) {
+                if(opt.handle === "") {
+                    var $drag = $(this).parent().addClass('draggable');
+                } else {
+                    var $drag = $(this).addClass('active-handle').parent().addClass('draggable');
+                }
+                var z_idx = $drag.css('z-index'),
+                    drg_h = $drag.outerHeight(),
+                    drg_w = $drag.outerWidth(),
+                    pos_y = $drag.offset().top + drg_h - e.pageY,
+                    pos_x = $drag.offset().left + drg_w - e.pageX;
+                $drag.css('z-index', 1000).parents().on("mousemove", function(e) {
+                    $('.draggable').offset({
+                        top:e.pageY + pos_y - drg_h,
+                        left:e.pageX + pos_x - drg_w
+                    }).on("mouseup", function() {
+                        $(this).removeClass('draggable').css('z-index', z_idx);
+                    });
+                });
+                e.preventDefault(); // disable selection
+            }).on("mouseup", function() {
+                if(opt.handle === "") {
+                    $(this).removeClass('draggable');
+                } else {
+                    $(this).removeClass('active-handle').parent().removeClass('draggable');
+                }
+            });
+        };
+
+        $.fn.undrags = function(opt) {
+            $(this).removeClass('draggable');
+        };
+
+        $(document).on('click', '.menu-refresh', function(e){
+            location.reload();
+        });
+
+        $(document).on('click', '.menu-undo', function(e){
+            undoManager.undo();
+        });
+        $(document).on('click', '.menu-redo', function(e){
+            undoManager.redo();
+        });
+
+        $(document).on('click', '.menu-edit-footnotes', function(e){
+        	e.preventDefault();
+        	window.open("editFootnotes", "popupWindow", "width=900,height=700,scrollbars=yes");
+        });
+
+        $(document).on('click', '.menu-open', function(e){
+        	var field = $(this).attr('field');
+            var buttonEle = $(this);
+            var menuBar =  $(this).closest('.menu-bar');
+            var posX = buttonEle.offset().left, posY = buttonEle.offset().top + buttonEle.height() + menuBar.height();
+            var htmlContent ="<div class='menu-dropdown' id='menu-dropdown'>";
+            var ajaxUrl = 'get' + field + 's';
+            $.get(ajaxUrl, function(data){
+                htmlContent += "<div class='menu-hover menu-dropdown-button' field='" + field + "'>All</div>"
+                jQuery.each(data, function (i, value) {
+                    htmlContent += "<div class='menu-hover menu-dropdown-button' id ='" + value[field + "_ID"] + "' field='" + field + "'>" + value[field] + "</div>"
+                });
+                htmlContent += "</div>";
+                $('.inner-wrap').after(htmlContent);
+                $('.menu-dropdown').hide();
+                $('.menu-dropdown').slideDown('slow');
+                $('.menu-dropdown').css({
+                	left:  posX,
+                	top:   posY-115+$("#pushobjLazy").scrollTop()
+                });
+                $('body').unbind("click").click(function (evt) {
+                	$('.menu-dropdown').slideUp('slow',function() { $(this).remove()});
+                	$('.menu-dropdown').remove()
+                	buttonEle.removeClass('menu-button-pressed');
+                });
+                buttonEle.addClass('menu-button-pressed');
+            });
+        });
+
+        $(document).on('click', '.menu-dropdown-button', function(e){
+        	var field = $(this).attr('field')
+        	var id = $(this).attr('id');
+        	if (id !== null){
+        		if (field === "CoE"){
+        			window.location.href = "/indicator/viewPR?fiscalYear=@ViewBag.fiscalYear&" + field + "ID=" + id;
+        		} else if (field === "Analyst"){
+        			window.location.href = "/indicator/editInventoryTD2?fiscalYear=@ViewBag.fiscalYear&" + field + "ID=" + id;
+        		}
+        	} else {
+        		if (field === "CoE"){
+        			window.location.href = "/indicator/viewPR?fiscalYear=@ViewBag.fiscalYear"
+        		} else if (field === "Analyst"){
+        			window.location.href = "/indicator/editInventoryTD2?fiscalYear=@ViewBag.fiscalYear"
+        		}
+        	}
+        });
+
+    	$('.overlay').on('click',function(e){
+    		$('#menuFilter').multilevelpushmenu('collapse')
+    		$(".overlay").fadeOut("fast");
+    	});
+
+
+    });
+
+
+</script>
+
+<style>
+    .block {
+        margin:0px 0px !important;
+        height:100%;
+        overflow:scroll;
+    }
+
+    .pr-footer-row {
+        width:100%;
+        max-width:100%;
+        margin:0px;
+        margin-bottom:20px;
+    }
+    .header-row, footer-row {
+        width:100%;
+        max-width:100%;
+        margin:0px;
+    }
+
+    .pr-footer-image{
+        float:right;
+    }
+
+
+    .add-indicator-panel {
+        background-color:lightgray !important;
+        border:1px solid black;
+        padding:0;
+        margin:0;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        border: 1px solid black;
+        padding: 0px;
+        background-color: red;
+        height:300px;
+        margin:0px;
+    }
+    .add-indicator-panel-header {
+        background-color: rgb(51,51,51);
+        padding:5px;
+        margin-bottom:0px;
+        color:white;
+    }
+        .add-indicator-panel-header::before {
+            float:left;
+            font-family: FontAwesome;
+            /*font-size:large;*/
+            content: "\f067";
+            color:white;
+            padding-right:5px;
+            padding-right:5px;
+        }
+    .add-indicator-panel-close {
+        color:white;
+        float:right;
+    }
+    .search {
+        margin:0px !Important;
+    }
+    .add-indicator-list {
+		color:black;
+        height: 219px;
+        overflow-y:scroll;
+        overflow-x:hidden;
+		float:left;
+		width:100%;
+    }
+    .add-indicator-item-title {
+        font-weight:bold;
+        display:inline;
+    }
+    .add-indicator-item {
+        font-size:small;
+        display:block;
+        width:100% !important;
+        text-align:left !important;
+        padding:5px;
+    }
+        .add-indicator-item::before {
+            float:left;
+            font-family: FontAwesome;
+            /*font-size:large;*/
+            content: "\f0da";
+            color:black;
+            padding-right:5px;
+        }
+    .clicked {
+        background:#4cff00;
+    }
+    .included {
+        background:#ff6a00;
+    }
+    .new-map {
+        display:none;
+    }
+    .newrow > *:not(.cssGreen):not(.cssYellow):not(.cssRed)  {
+        background-color:lightblue !important;
+    }
+
+	table {
+		width:300%;
+        margin:0 !important;
+        table-layout:fixed;
+		display:block;
+    }
+
+    table, th, td {
+        border: 1px solid black;
+        white-space: normal;
+		display:block;
+    }
+
+		table tr {
+			height:20px;
+			line-height:20px;
+		}
+
+    .prrow tr {
+        -webkit-transition: all 0.30s ease-in-out;
+        -moz-transition: all 0.30s ease-in-out;
+        -ms-transition: all 0.30s ease-in-out;
+        -o-transition: all 0.30s ease-in-out;
+    }/*
+    .prrow:hover {
+        box-shadow: 0 0 10px rgba(81, 203, 238, 1);
+        padding: 3px 0px 3px 3px;
+        margin: 5px 1px 3px 0px;
+        border: 1px solid rgba(81, 203, 238, 1);
+    }*/
+
+    .pr-edit-textarea {
+        -webkit-transition: all 0.30s ease-in-out;
+        -moz-transition: all 0.30s ease-in-out;
+        -ms-transition: all 0.30s ease-in-out;
+        -o-transition: all 0.30s ease-in-out;
+    }/*
+    .pr-edit-textarea:hover {
+        box-shadow: 0 0 10px rgba(255, 106, 0, 1);
+        padding: 3px 0px 3px 3px;
+        margin: 5px 1px 3px 0px;
+        border: 1px solid rgba(255, 106, 0, 1);
+    }*/
+
+    .prheader-1 {
+        font-size: 11px;
+        background-color: rgb(0,51,102);
+        color: White;
+        text-align: center;
+        padding: 0px;
+    }
+
+    .prheader-2 {
+        font-size: 11px;
+        background-color: White;
+        color: Black;
+        text-align: center;
+        padding: 0px;
+    }
+
+    .prarea {
+        font-size: 11px;
+        background-color: Silver;
+        text-align: justify;
+        color: Black;
+        padding: 5px;
+    }
+
+    .prtd-id {
+        font-size: 11px;
+        background-color: White;
+        text-align: center;
+        color: black !important;
+        width:2%;
+        padding: 0px 2px 0px 2px;
+    }
+
+    .prtd-title {
+        font-size: 11px;
+        background-color: White;
+        text-align: justify;
+        color: Black;
+        word-wrap: break-word;
+        padding: 2px 2px 2px 2px;
+        width:7%;
+    }
+
+	.prtd-CoE {
+        font-size: 11px;
+        background-color: White;
+        text-align: justify;
+        color: Black;
+        word-wrap: break-word;
+        padding: 0px 2px 0px 2px;
+        width:7%;
+    }
+
+    .prtd-id-def {
+        font-size: 11px;
+        background-color: White;
+        text-align: center;
+        color: Black;
+        min-width: 0.05% !important;
+        max-width: 0.05% !important;
+        padding: 0px 2px 0px 2px;
+    }
+
+    .prtd-titleDef {
+        font-size: 11px;
+        background-color: White;
+        text-align: justify;
+        color: Black;
+        min-width: 20% !important;
+        word-wrap: break-word;
+        padding: 0px 2px 0px 2px;
+    }
+
+    .prtd {
+        font-size: 11px;
+        background-color: White;
+        text-align: center;
+        color: Black;
+        min-width: 75px;
+        padding: 0px;
+        width:3%;
+    }
+
+	.pr-input {
+        display:inline;
+		border:1px solid white;
+		height:100% !important;
+		width:50% !important;
+		display:none;
+		background-color:lightgray !important;
+		text-align:inherit;
+        float:left;
+	}
+    .pr-input-def {
+        width:100% !important;
+    }
+	
+	textarea {
+        width: 100% !important;
+		height:inherit !important;
+        box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        background-color: lightgray;
+    }
+
+    .prtdDef {
+        font-size: 11px;
+        background-color: White;
+        text-align: left;
+        color: Black;
+        width:10% !important;
+        padding: 0px;
+    }
+
+    .cssRed {
+        font-size: 11px;
+        background-color: rgb(255, 0, 0);
+        text-align: center;
+        color: White;
+        padding: 0px;
+    }
+
+    .cssGreen {
+        font-size: 11px;
+        background-color: rgb(0, 118, 53);
+        text-align: center;
+        color: White;
+        padding: 0px;
+    }
+
+    .cssYellow {
+        font-size: 11px;
+        background-color: rgb(255, 192, 0);
+        text-align: center;
+        color: Black;
+        padding: 0px;
+    }
+
+    .cssWhite {
+        font-size: 11px;
+        background-color: White;
+        text-align: center;
+        color: Black;
+        padding: 0px;
+    }
+
+    .inventoryEdit {
+        padding: 0 0 0 0;
+        margin: 0 0 0 0;
+    }
+
+    .textBox1 {
+        font-size: 11px;
+        width: inherit;
+        padding: 0 0 0 0;
+        margin: 0 0 0 0;
+        border: 0;
+        background-color: transparent;
+        color: inherit;
+    }
+
+
+    .prrow-hasNValue > td {
+        border-bottom:0px none;
+    }
+    .prrow-isNValue > td {
+        border-top:0px none;
+        height:20px;
+    }
+
+    .newrow, .newrow-td, .thVal, .thVal2 {
+        padding: 0 0 0 0 !important;
+        margin: 0 0 0 0 !important;
+    }
+
+    .newrow-text {
+        margin: 0 0 0 0 !important;
+    }
+    .list {
+        margin:0px;
+        color:white;
+    }
+    .export-button {
+        font-size:medium !important;
+        color:black;
+        box-shadow: 0 0 1px rgba(81, 203, 238, 1);
+        padding: 3px 0px 3px 3px;
+        margin: 5px 1px 3px 0px;
+        border: 1px solid rgba(81, 203, 238, 1);
+    }
+
+        .export-Excel::before {
+            float:left;
+            font-family: FontAwesome;
+            /*font-size:large;*/
+            content: "\f1c3";
+            color:black;
+            padding-right:5px;
+            padding-right:5px;
+        }
+
+        .export-PDF::before {
+            float:left;
+            font-family: FontAwesome;
+            /*font-size:large;*/
+            content: "\f1c1";
+            color:black;
+            padding-right:5px;
+            padding-right:5px;
+        }
+
+
+    .footer {
+        background-color:#0061a7;
+        border-bottom:2px solid rgb(0,51,102);
+        border-top:1px solid black;
+        padding-left: 17px;
+        line-height:7px;
+        position: fixed; 
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 26px;
+        z-index:100;
+        text-align:right;
+		width:100%;
+}
+    .calc-title, .calc {
+        color:white;
+        display:inline;
+        font-size:small;
+        margin:0px 3px;
+        padding: 3px;
+    }
+	
+	.menu-dropdown {
+        background-color: rgb(2, 69, 137);
+        border: 0px 2px 2px 0px;
+		position: absolute;
+    }
+    .menu-title {
+        color:white;
+        font-size:0.75em;
+    }
+    .menu-dropdown-button {
+        padding: 5px;
+        color:white;
+        font-size:0.19em;
+    }
+	.lt-ie9 .menu-dropdown-button {
+        padding: 5px;
+		padding-top: 10px;
+        color:white;
+        font-size:1.1em;
+    }
+    .menu-button-pressed {
+        background-color: rgb(2, 69, 137);
+    }
+
+    .menu-bar {
+        background-color:#0061a7;
+        border-bottom:2px solid rgb(0,51,102);
+        border-top:1px solid black;
+        padding-left: 17px;
+        line-height:30px;
+    }
+
+	.footnotes {
+		font-size:12px !important;
+		color:black;
+	}
+	.footnote {
+		float:left;
+		width:50%;
+	}
+
+    .menu-button {
+        color:white;
+        display:inline;
+        font-size:medium;
+        margin:0px 3px;
+        padding: 3px;
+		float:left;
+    }
+
+
+    .menu-refresh {
+        float:right;
+    }
+
+    td.ui-selecting {
+        outline:2px solid #ff6a00;
+    }
+    td.ui-selected {
+        outline:2px solid red;
+    }
+
+    th.ui-selecting {
+        background-color:#ff6a00;
+    }
+    th.ui-selected {
+        background-color:#ff6a00;
+    }
+    .menu-hover:hover {
+        background-color:#ff6a00;
+    }
+    .menu-hover:active {
+        background-color:red;
+    }
+
+</style>
+
+<style>
+
+
+    .container {
+        overflow: visible;
+        height:100%;
+    }
+    .scroller {
+        overflow-y:visible;
+    }
+
+    #menuFilter {
+        display:none;
+    }
+    .lt-ie9 #menuFilter {
+        display:block;
+    }
+
+    .lt-ie9 .mp-menu {
+        visibility:hidden;
+    }
+    .lt-ie9 .scroller {
+        position:absolute;
+        top:0px;
+        left:0px;
+        width:100%;
+        /*margin-left:-300px;*/
+    }
+    .lt-ie9 .fa-rotate-90 {
+        padding-right:10px;
+        margin-top:10px;
+        background:none;
+        vertical-align:central;
+    }
+
+    .mp-menu ul li > a {
+        padding:9px;
+        font-size:1.5em;
+        font-family:'Open Sans Condensed', sans-serif;
+        color:#0094ff;
+        line-height:1em;
+    }
+        .mp-menu ul li > a::after {
+            font-size:1em;
+            padding-right:9.6px;
+            color:#0094ff;
+            float:left;
+            font-family: FontAwesome;
+            content: "\f104";
+            font-weight:normal;
+            font-style:normal;
+        }
+
+    .mp-menu a{
+        font-size: 1.5em;
+        padding: 4px 0px 4px 15px;
+        display: block;
+    }
+
+    h2 > .fa-times, a > .fa-filter {
+        float:right;
+    }
+
+    .area {
+        font-weight:300;
+        color:rgb(128, 128, 128);
+        display:block;
+        margin-left:9px;
+    }
+    .coe {
+        font-weight:800;
+    }
+    .title {
+        
+    }
+    
+    .blockContent {
+        padding:5px;
+        max-width:900px !important;
+        display:block;
+    }
+        .blockContent:hover {
+            background-color:#0081de;
+            color:rgb(255, 255, 255) !important;
+        }
+    .titleColumn {
+        text-align:right;
+    }
+
+    .backToTop {
+        position: fixed;
+        bottom: 0px;
+        right: 0px;
+        text-decoration: none;
+        color: #000000;
+        background-color: rgba(135, 135, 135, 0.50);
+        font-size: 12px;
+        padding: 1em;
+        display: none;
+    }
+
+    .backToTop:hover {    
+        background-color: rgba(135, 135, 135, 0.50);
+    }
+
+    .left-off-canvas-menu {
+        height: 100%;
+    }
+
+
+    #myTags {
+        width:100%;
+    }
+
+    .tagit-choice {
+        background-color:#FFF0B3 !important;
+        padding:15px;
+        width:100%;
+    }
+    .tagit-choice:first-child {
+        margin-top:3px;
+    }
+    .tagit-label {
+        color:black;
+        font-weight:bold;
+    }
+    .text-icon {
+        float:right;
+        position:relative;
+        top:-10px;
+        font-size:xx-large;
+        color:black;
+    }
+
+    .doubleList {
+        -moz-column-count: 2;
+        -moz-column-gap: 0px;
+        -webkit-column-count: 2;
+        -webkit-column-gap: 0px;
+        column-count: 2;
+        column-gap: 0px;
+    }
+    .tagList {
+        -moz-column-count: 1;
+        -moz-column-gap: 0px;
+        -webkit-column-count: 1;
+        -webkit-column-gap: 0px;
+        column-count: 1;
+        column-gap: 0px;
+        list-style-type: none;
+        padding:0; margin:0;
+    }
+    .tagit-new {
+        display:none;
+    }
+
+    .search {
+        float:left;
+        background-image: url(http://www.levenmetwater.nl/static/global/images/icon-search.png);
+        background-position: 10px center;
+        background-repeat: no-repeat;
+        margin: 0px !important;
+        width: 100%;
+        height: 40px;
+        padding: 10px 45px 10px 10px !important;
+        text-indent: 20px;
+        -webkit-transition: all 0.2s;
+        -moz-transition: all 2s;
+        transition: all 0.2s;
+        border:none;
+    }
+    .lt-ie9 .search {
+        padding-left:30px !important;
+    }
+        .search:focus {
+            background-position: -20px center;
+            text-indent: 20px;
+        }
+
+        .search::-webkit-search-cancel-button{
+            position:relative;
+            right:25px;
+  
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius:0px;
+        }
+            .search::-webkit-search-cancel-button::before {
+                font-family: FontAwesome;
+                font-size:large;
+                content: "\f057";
+                color:black;
+
+            }
+
+    .filterExpand {
+        color:white;
+        position:relative;
+        top:-37px;
+        padding: 5px 0 0px 15px;
+        float: right;
+        width: 50px;
+        margin: 0px !important;
+        font-size: small;
+        height: 37px !important;
+        overflow: hidden !important;
+        vertical-align: middle;
+        background-color: #0094ff;
+    }
+
+
+    #menuFilter .multilevelpushmenu_wrapper h2, #menuFilter3D h2 {
+	    font-size: medium !important;
+	    line-height: 1em;
+	    font-weight: lighter;
+        margin-top:0;
+	    color: white;
+        height:50px;
+	    padding: 1em .4em .4em .4em;
+        background-color: #0094ff;
+        font-family: Optima, Segoe, "Segoe UI", Candara, Calibri, Arial, sans-serif;
+    }
+
+    #menuFilter .levelHolderClass, .mp-level {
+        background-color:white !important;
+        color:white;
+    }
+
+    /*#menuFilter li:hover {
+        background-color:#54c5ff !important;
+        border:0 !important;
+    }*/
+
+
+    #menuFilter li {
+        border:0 !important;
+        padding:0;
+    }
+
+    #menuFilter .multilevelpushmenu_wrapper a {
+        color:#0094ff !important;
+        border:0 !important;
+        padding:9px;
+    }
+
+    .doubleList li:hover {
+    }
+
+    .backItemClass {
+        background-color:white !important;
+        color:#0094ff !important;
+        border:0px !important;
+    }
+        .backItemClass a {
+            font-size: medium !important;
+        }
+        /*.backItemClass:hover {
+            background-color:#54c5ff !important;
+        }*/
+
+     .filterCheck::before {
+        float:right;
+        font-family: FontAwesome;
+        /*font-size:large;*/
+        content: "\f00c";
+        color:white;
+        padding-right:5px;
+    }
+
+    .filterCheck {
+        background-color:#4cff00 !important;
+        color:white !important; 
+    }
+
+    /*#menuFilter .filterCheck:hover {
+        background-color:#a3ff7c !important;
+    }*/
+
+    .ui-autocomplete-input {
+        visibility:hidden !important;
+    }
+
+    .inner-wrap {
+        position:absolute;
+        top:37px;
+        height:600%;
+    }
+
+    .pushobjLazy {
+        height:98% !important;
+        overflow:hidden;
+    }
+    #pushobjLazy, .header, .container, .scroller, .scroller-inner, #pushList, .inner-wrap{
+        height:100% !important;
+        overflow:hidden !important;
+    }
+
+    .pr-def-column {
+        width:12%;
+    }
+    .pr-title-column {
+        width:5%;
+    }
+    .pr-id-column {
+        width:2%;
+    }
+	.pr-coe-column {
+        width:2%;
+    }
+
+
+	.hidden-column {
+        overflow:hidden !important;
+        width:1px !important;
+        border:none;
+    }
+
+	.comp-saved {
+        font-size: 11px;
+        background-color: rgb(0, 118, 53);
+        text-align: center;
+        color: White;
+        padding: 0px;
+	}
+
+	#tbl_Inventory_paginate {
+		font-size:0.2em;
+	}
+
+	[class*="column"] + [class*="column"]:last-child {
+		float:none !important;
+	}
+	.DTFC_LeftBodyLiner {
+		overflow-x: hidden !important;
+		padding-right: 1px;
+	}
+
+</style>

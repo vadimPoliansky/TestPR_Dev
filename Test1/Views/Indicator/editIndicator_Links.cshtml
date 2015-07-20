@@ -1,0 +1,185 @@
+@model IndInv.Models.ViewModels.Edit_Indicator_LinksViewModel
+@{
+    ViewBag.Title = "editIndicator_Links";
+}
+<div class="row edit-link-header">
+	<label class="searchgrid-container">Search Indicators:<input id="searchgrid" type="text" /></label>
+	<button id="submit-links">Submit Link</button>
+	<button id="view-links">View Links</button>
+</div>
+<div class="container">
+<ul id="indicator-list-full" class="indicator-list">
+@foreach (var indicator in Model.allIndicators)
+ {
+	<text>
+		<li class="indicator-list-item" indicatorid="@indicator.Indicator_ID">@(indicator.Indicator_ID 
+			+ ( indicator.Indicator_CoE_Map.Count > 0 ? " - " + indicator.Indicator_CoE_Map.FirstOrDefault().CoE.CoE_Abbr : " ")
+			+ " - " + indicator.Indicator
+		)</li>
+	</text>	 
+ }
+</ul>
+
+<ul id="indicator-list-tolink" class="indicator-list indicator-list-tolink">
+	<li class="sample-item">Drag Indicators Here to Link</li>
+</ul>
+	<div class="field-item-container">
+	@foreach(var linkField in Model.allFields){
+		if(linkField.Link_Field_ID == 2 && Roles.IsUserInRole("Analyst")){
+		}else {
+		@:<div class="field-item"><input type="checkbox" class="field-item-check" name="Link_Field" value="@linkField.Link_Field_ID" />@linkField.Link_Field</div>
+		}
+	}
+	</div>
+</div>
+
+
+
+<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="//code.jquery.com/ui/1.11.2/jquery-ui.min.js" ></script>
+
+<script>
+	$(document).ready(function () {
+		$(function () {
+			$("#indicator-list-full, #indicator-list-tolink").sortable({
+				connectWith: ".indicator-list",
+				items: ".indicator-list-item",
+				cancel: ".sample-item"
+			}).disableSelection();
+		});
+
+		var delay = (function () {
+			var timer = 0;
+			return function (callback, ms) {
+				clearTimeout(timer);
+				timer = setTimeout(callback, ms);
+			};
+		})();
+		$('#searchgrid').on('keyup', function (event) {
+			var searchText = $(this).val().toLowerCase();
+			delay(function () {
+				$('#indicator-list-full').children().each(function (index, indicator) {
+					var indicatorTitle = $(indicator).html();
+					
+					if (indicatorTitle.toLowerCase().indexOf(searchText) == -1) {
+						$(indicator).addClass('search-filtered');
+					} else {
+						$(indicator).removeClass('search-filtered');
+					}
+				});
+			}, 500);
+		});
+
+		$('#submit-links').on('click', function (e) {
+			var indicatorLinks = $('#indicator-list-tolink').children('.indicator-list-item');
+			var indicatorLinksLen = indicatorLinks.length;
+			//var parameters = [];
+			var indicatorIDList = [];
+			var fieldIDList = [];
+			if (indicatorLinksLen >= 2) {
+				var indicatorID1 = $(indicatorLinks[0]).attr('indicatorid');
+				indicatorIDList.push(indicatorID1);
+				for (var i = 1; i <= indicatorLinksLen - 1; i++) {
+					var indicatorID2 = $(indicatorLinks[i]).attr('indicatorid');
+					indicatorIDList.push(indicatorID2);
+				}
+				$('.field-item-check:checked').each(function (index, linkField) {
+					var fieldID = $(linkField).attr('value');
+					/*						var linkedObj = {
+												Indicator_ID_1: indicatorID1,
+												Indicator_ID_2: indicatorID2,
+												Link_Field_ID: fieldID,
+											}*/
+					fieldIDList.push(fieldID);
+					//parameters.push(linkedObj);
+				});
+			}
+			parameters = {
+				Indicator_ID_List: indicatorIDList,
+				Field_ID_List: fieldIDList
+			};
+			$.ajax({
+				url: 'addIndicatorLinks',
+				type: 'POST',
+				data: JSON.stringify(parameters),
+				contentType: 'application/json; charset=utf-8',
+				success: function (result) {
+					alert('Link Created');
+					location.reload();
+
+				},
+				error: function (request) {
+				}
+			});
+		});
+
+		$(document).on('click', '#view-links', function (e) {
+			e.preventDefault();
+			window.open("viewIndicator_Links?fiscalYear=" + @Model.Fiscal_Year, "popupWindow", "scrollbars=yes");
+		});
+	});
+</script>
+
+<style>
+	.edit-link-header {
+		width:100%;
+		max-width:100% !important;
+		text-align:center;
+	}
+
+	.indicator-list-item.ui-sortable-handle {
+    font-size: 0.8em;
+    margin: 5px;
+}
+
+	.sample-item {
+		font-style:oblique;
+	}
+	#submit-links{
+		float:right;
+	}
+	.searchgrid-container {
+		float:left;
+	}
+	.searchgrid-container {
+		width:75%;
+	}
+	#submit-links {
+		width:10%;
+	}
+	#view-links {
+		width:10%;
+	}
+
+	.indicator-list, .field-item-container {
+		width:30%;
+		float:left;
+		height: 80%;
+		overflow: scroll;
+		border: 1px solid #dadada;
+		margin-left: 1.1rem;
+	}
+	.field-item-container {
+		overflow:visible;
+	}
+	button, .searchgrid-container {
+		margin: 5px !important;
+	}
+
+	.field-item {
+		font-size:0.5em;
+		width:100%;
+		    margin: 14px;
+    width: 90%;
+	}
+
+	.search-filtered {
+		height:0;
+		color: white;
+		margin: 0 !important;
+	}
+
+	.container {
+		display:inline;
+	}
+</style>

@@ -1,0 +1,95 @@
+﻿@model IndInv.Models.ViewModels.Edit_Indicator_LinksViewModel
+
+@{
+    ViewBag.Title = "viewIndicator_Links";
+}
+<button id="back-btn">Back</button>
+<table class="indicator-link-list">
+	<thead>
+		<tr>
+			<th>
+				Link ID
+			</th>
+			<th>
+				Indicators
+			</th>
+			<th>
+				Fields
+			</th>
+			<th>
+				View Indicators
+			</th>
+			<th>
+				Remove Linkage
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+@foreach (var link in Model.allIndicator_Links)
+{
+	<tr class="indicator-link">
+		<td class="indicator-link-container">
+			@link.Link_ID
+		</td>
+		<td class="indicator-link-indicator-container">
+			@foreach (var indicator in link.Indicator_Link_Indicators)
+			{
+				<div class="indicator-link-indicator">
+					@(indicator.Indicator.Indicator_ID 
+			+ ( indicator.Indicator.Indicator_CoE_Map.Count > 0 ? " - " + indicator.Indicator.Indicator_CoE_Map.FirstOrDefault().CoE.CoE_Abbr : " ")
+			+ " - " + indicator.Indicator.Indicator
+		)
+				</div>
+			}
+		</td>
+		<td class="indicator-link-field-container">
+			@foreach (var field in link.Indicator_Link_Fields)
+			{
+				<div class="indicator-link-field">
+					@field.Link_Field.Link_Field
+				</div>
+			}
+		</td>
+		<td class="indicator-link-view-container">
+			<button class="view-link" linkid="@link.Link_ID">View Indicators</button>
+		</td>
+		<td class="indicator-link-delete-container">
+			<button class="delete-link" linkid="@link.Link_ID">Remove Linkage</button>
+		</td>
+	</tr>
+}
+	</tbody>
+</table>
+	
+<style>
+	.indicator-link-list, .indicator-link {
+		width:100%;
+	}
+	#back-btn {
+		float:right;
+	}
+</style>
+
+<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+<script>
+	$('.delete-link').on('click', function (e) {
+		var linkID = $(this).attr('linkid');
+		var tr = $(this).closest('tr');
+		$.post('deleteIndicatorLink', { linkID: linkID }, function (result) {
+			tr.remove();
+		});
+	});
+
+	$('.view-link').on('click', function (e) {
+		var linkID = $(this).attr('linkid');
+		w = window.open("editInventory?fiscalYear=" + @Model.Fiscal_Year + "&Link_ID=" + linkID, '', '');
+		//opener.location.href = "editInventory?fiscalYear=" + @Model.Fiscal_Year + "&Link_ID=" + linkID;
+	});
+
+	$('#back-btn').on('click', function (e) {
+		parent.history.back();
+		return false;
+	});
+
+
+</script>

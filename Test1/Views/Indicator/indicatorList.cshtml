@@ -1,0 +1,23 @@
+﻿@model IndInv.Models.ViewModels.indexViewModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>indicatorList</title>
+</head>
+<body>
+    <div>
+        <input type="submit" name="formSubmit" value="Submit" />
+        @foreach (var indicator in Model.allIndicators)
+        {
+            <h6>@Html.DisplayTextFor(x=> indicator.Indicator)</h6>
+        }
+    </div>
+</body>
+</html>

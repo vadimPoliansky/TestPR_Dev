@@ -1,0 +1,314 @@
+﻿@model IndInv.Models.ViewModels.indexViewModel
+@{
+    ViewBag.Title = "Home";
+    ViewBag.fiscalYear = Model.Fiscal_Year;
+}
+
+
+
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.min.css">
+
+<script type="text/javascript">
+  
+
+</script>
+
+<style>
+
+
+    .container {
+        overflow: visible;
+        height:100%;
+    }
+    .scroller {
+        overflow-y:visible;
+    }
+
+    #menuFilter {
+        display:none;
+    }
+    .lt-ie9 #menuFilter {
+        display:block;
+    }
+
+    .lt-ie9 .mp-menu {
+        visibility:hidden;
+    }
+    .lt-ie9 .scroller {
+        position:absolute;
+        top:0px;
+        left:0px;
+        width:100%;
+        /*margin-left:-300px;*/
+    }
+    .lt-ie9 .fa-rotate-90 {
+        padding-right:10px;
+        margin-top:10px;
+        background:none;
+        vertical-align:central;
+    }
+
+    .mp-menu ul li > a {
+        padding:9px;
+        font-size:1.5em;
+        font-family:'Open Sans Condensed', sans-serif;
+        color:#0094ff;
+        line-height:1em;
+    }
+        .mp-menu ul li > a::after {
+            font-size:1em;
+            padding-right:9.6px;
+            color:#0094ff;
+            float:left;
+            font-family: FontAwesome;
+            content: "\f104";
+            font-weight:normal;
+            font-style:normal;
+        }
+
+    .mp-menu a{
+        font-size: 1.5em;
+        padding: 4px 0px 4px 15px;
+        display: block;
+    }
+
+    h2 > .fa-times, a > .fa-filter {
+        float:right;
+    }
+
+    .block {
+        margin:5px;
+        fill-opacity:0.99;
+        position:relative;
+        display:block;
+    }
+
+    .area {
+        font-weight:300;
+        color:rgb(128, 128, 128);
+        display:block;
+        margin-left:9px;
+    }
+    .coe {
+        font-weight:800;
+    }
+    .title {
+        
+    }
+    
+    .blockContent {
+        padding:5px;
+        max-width:900px !important;
+        display:block;
+    }
+        .blockContent:hover {
+            background-color:#0081de;
+            color:rgb(255, 255, 255) !important;
+        }
+    .titleColumn {
+        text-align:right;
+    }
+
+    .backToTop {
+        position: fixed;
+        bottom: 0px;
+        right: 0px;
+        text-decoration: none;
+        color: #000000;
+        background-color: rgba(135, 135, 135, 0.50);
+        font-size: 12px;
+        padding: 1em;
+        display: none;
+    }
+
+    .backToTop:hover {    
+        background-color: rgba(135, 135, 135, 0.50);
+    }
+
+    .left-off-canvas-menu {
+        height: 100%;
+    }
+
+    .list {
+        margin:0px;
+        font-size:0;
+        
+    }
+
+
+    #myTags {
+        width:100%;
+    }
+
+    .tagit-choice {
+        background-color:#FFF0B3;
+        padding:15px;
+        width:100%;
+    }
+    .tagit-choice:first-child {
+        margin-top:3px;
+    }
+    .tagit-label {
+        color:black;
+        font-weight:bold;
+    }
+    .text-icon {
+        float:right;
+        position:relative;
+        top:-10px;
+        font-size:xx-large;
+        color:black;
+    }
+
+    .doubleList {
+        -moz-column-count: 2;
+        -moz-column-gap: 0px;
+        -webkit-column-count: 2;
+        -webkit-column-gap: 0px;
+        column-count: 2;
+        column-gap: 0px;
+    }
+    .tagList {
+        -moz-column-count: 1;
+        -moz-column-gap: 0px;
+        -webkit-column-count: 1;
+        -webkit-column-gap: 0px;
+        column-count: 1;
+        column-gap: 0px;
+        list-style-type: none;
+        padding:0; margin:0;
+    }
+
+    .search {
+        float:left;
+        background-image: url(http://www.levenmetwater.nl/static/global/images/icon-search.png);
+        background-position: 10px center;
+        background-repeat: no-repeat;
+        margin: 0px !important;
+        width: 100%;
+        height: 40px;
+        padding: 10px 45px 10px 10px !important;
+        text-indent: 20px;
+        -webkit-transition: all 0.2s;
+        -moz-transition: all 2s;
+        transition: all 0.2s;
+        border:none;
+    }
+    .lt-ie9 .search {
+        padding-left:30px !important;
+    }
+        .search:focus {
+            background-position: -20px center;
+            text-indent: 20px;
+        }
+
+        .search::-webkit-search-cancel-button{
+            position:relative;
+            right:25px;
+  
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius:0px;
+        }
+            .search::-webkit-search-cancel-button::before {
+                font-family: FontAwesome;
+                font-size:large;
+                content: "\f057";
+                color:black;
+
+            }
+
+    .filterExpand {
+        color:white;
+        position:relative;
+        top:-37px;
+        padding: 5px 0 0px 15px;
+        float: right;
+        width: 50px;
+        margin: 0px !important;
+        font-size: small;
+        height: 37px !important;
+        overflow: hidden !important;
+        vertical-align: middle;
+        background-color: #0094ff;
+    }
+
+
+    #menuFilter .multilevelpushmenu_wrapper h2, #menuFilter3D h2 {
+	    font-size: medium !important;
+	    line-height: 1em;
+	    font-weight: lighter;
+        margin-top:0;
+	    color: white;
+        height:50px;
+	    padding: 1em .4em .4em .4em;
+        background-color: #0094ff;
+        font-family: Optima, Segoe, "Segoe UI", Candara, Calibri, Arial, sans-serif;
+    }
+
+    #menuFilter .levelHolderClass, .mp-level {
+        background-color:white !important;
+        color:white;
+    }
+
+    /*#menuFilter li:hover {
+        background-color:#54c5ff !important;
+        border:0 !important;
+    }*/
+
+
+    #menuFilter li {
+        border:0 !important;
+        padding:0;
+    }
+
+    #menuFilter .multilevelpushmenu_wrapper a {
+        color:#0094ff !important;
+        border:0 !important;
+        padding:9px;
+    }
+
+    .doubleList li:hover {
+    }
+
+    .backItemClass {
+        background-color:white !important;
+        color:#0094ff !important;
+        border:0px !important;
+    }
+        .backItemClass a {
+            font-size: medium !important;
+        }
+        /*.backItemClass:hover {
+            background-color:#54c5ff !important;
+        }*/
+
+     .filterCheck::before {
+        float:right;
+        font-family: FontAwesome;
+        /*font-size:large;*/
+        content: "\f00c";
+        color:white;
+        padding-right:5px;
+    }
+
+    .filterCheck {
+        background-color:#4cff00 !important;
+        color:white !important; 
+    }
+
+    /*#menuFilter .filterCheck:hover {
+        background-color:#a3ff7c !important;
+    }*/
+
+    .ui-autocomplete-input {
+        visibility:hidden !important;
+    }
+
+    .inner-wrap {
+        position:absolute;
+        top:37px;
+    }
+
+</style>

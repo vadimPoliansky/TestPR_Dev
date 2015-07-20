@@ -1,0 +1,142 @@
+﻿@using IndInv.Helpers
+@using IndInv.Models
+@using System.Globalization
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="~/Scripts/jquery.handsontable.full.js"></script>
+<link rel="stylesheet" media="screen" href="~/Scripts/jquery.handsontable.full.css" />
+@model IList<IndInv.Models.ViewModels.CoEsViewModel>
+@using IndInv.Models
+@{
+    ViewBag.Title = "Edit Indicator Inventory";
+	var fiscalYear = Model.FirstOrDefault().Fiscal_Year;
+}
+
+<br />
+        <div id="dataTable"></div>
+
+<script type="text/javascript">
+
+    var maxed = false
+        , resizeTimeout
+        , availableWidth
+        , availableHeight
+        , $window = $(window)
+        , $example1 = $('#dataTable');
+
+    var calculateSize = function () {
+        var offset = $example1.offset();
+        availableWidth = $window.width() - offset.left + $window.scrollLeft();
+        availableHeight = $window.height() - offset.top + $window.scrollTop();
+
+        $example1.handsontable('updateSettings','width: ' + availableWidth + 'px');
+        $example1.handsontable('updateSettings','height: ' + availableHeight + 'px');
+        //$IndInv.style.height  = availableHeight + 'px';
+    };
+    $window.on('resize', calculateSize);
+    setInterval(calculateSize, 5000)
+
+    var values = @Html.Raw(Json.Encode(Model));
+
+    $example1 .handsontable({
+        data: values,
+        startRows: 1,
+        startCols: 1,
+        rowHeaders: true,
+        colHeaders: true,
+        strechH: 'auto',
+        strechW: 'auto',
+        scrollH: 'auto',
+        scrollV: 'auto',
+        fixedRowsTop: 0,
+        fixedColumnsLeft: 1,
+        contextMenu: true,
+        minSpareRows: 1,
+        colWidths: [300, 300, 300, 300, 300, 300],
+        colHeaders: [
+            "CoE",
+            "Abbr",
+			"Type",
+            "Notes",
+            "Subtitle",
+			"Title"
+        ],
+        columns: [
+            {data: 'CoE'},
+            {data: 'CoE_Abbr'},
+			{data: 'CoE_Type'},
+			{data: 'Notes'},
+            {data: 'CoE_Subtitle'},
+			{data: 'CoE_Title'}
+        ],
+        width: function () {
+            if (maxed && availableWidth === void 0) {
+                calculateSize();
+            }
+            return maxed  ?  availableWidth *0.98 : 300;
+        },
+        afterChange: function (change, source) {
+            if (source === 'loadData') {
+                return;
+            } else {
+                for (var i = 0; i< change.length; ++i){
+                    if (change[i][1] != "CoE_ID"){
+                        updateCoE(change, i);
+                    }
+                }
+            }
+        },
+        beforeRemoveRow: function(index, amount){
+            var coeID =  this.getDataAtRowProp(index, 'CoE_ID')
+            deleteCoE(coeID);
+        }
+    });
+
+    maxed = !maxed;
+    $example1.handsontable('render');
+
+    function updateCoE(change, i){
+        var changedRow = change[i][0];
+        var changedParameter = change[i][1];
+        var changedValue = change[i][3];
+        $.get('@Url.Action("/editCoEs")', {CoE_ID_Filter : $example1.handsontable('getDataAtCell', changedRow,'CoE_ID'), fiscalYear: @fiscalYear }, function (data) {
+            var newValue = data;
+            $example1.handsontable('setDataAtRowProp', changedRow,'CoE_ID', data[0].CoE_ID)
+            var parameters = []
+            parameters.push({
+            	CoE: (changedParameter=="CoE" ?  changedValue : newValue[0].CoE),
+            	CoE_ID: (changedParameter=="CoE_ID" ?  changedValue : newValue[0].CoE_ID),
+            	CoE_Abbr: (changedParameter=="CoE_Abbr" ?  changedValue : newValue[0].CoE_Abbr),
+            	CoE_Type: (changedParameter=="CoE_Type" ?  changedValue : newValue[0].CoE_Type),
+            	CoE_Notes: (changedParameter=="CoE_Notes" ?  changedValue : newValue[0].CoE_Notes),
+            	CoE_Subtitle: (changedParameter=="CoE_Subtitle" ?  changedValue : newValue[0].CoE_Subtitle),
+            	CoE_Title: (changedParameter=="CoE_Title" ?  changedValue : newValue[0].CoE_Title),
+            });
+            $.ajax({
+                url: this.action,
+                type: 'POST',
+                data: JSON.stringify(parameters),
+                contentType: 'application/json; charset=utf-8',
+                success: function (result) {
+                },
+                error: function (request){
+                }
+            });
+        });
+    }
+
+    function deleteCoE(coeID){
+        var parameters = {coeID: coeID};
+        $.ajax({
+            url:'@Url.Action("/deleteCoEs")',
+            type: 'POST',
+            data: JSON.stringify(parameters),
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+            },
+            error: function (request){
+            }
+        });
+    }
+
+</script>
+ 

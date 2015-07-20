@@ -1,0 +1,1431 @@
+﻿@using IndInv.Helpers
+@model IndInv.Models.ViewModels.indexViewModel
+@using IndInv.Models
+@{
+    ViewBag.Title = "Search Results";
+    ViewBag.fiscalYear = Model.Fiscal_Year;
+	var fiscalYear = Model.Fiscal_Year;
+	var properties = ModelMetadataProviders.Current;
+}
+
+<style>
+	body {
+		background-color: #2d3947;
+		filter: none !important;
+	}
+
+	.tab-bar {
+		top:-3px;
+		z-index:5000;
+		width:100%;
+	}
+	#pushobjLazy {
+		overflow:inherit !important;
+	}
+	.filter-bar {
+		width:100%;
+		z-index:5001;
+		height:37px;
+	}
+
+    .container {
+        overflow: visible;
+        height:100%;
+    }
+    .scroller {
+        overflow-y:visible;
+		height:100%;
+    }
+
+    #menuFilter {
+        display:none;
+    }
+    .lt-ie9 #menuFilter {
+        display:block;
+    }
+
+    .lt-ie9 .mp-menu {
+        visibility:hidden;
+    }
+    .lt-ie9 .scroller {
+        position:absolute;
+        top:0px;
+        left:0px;
+        width:100%;
+        /*margin-left:-300px;*/
+    }
+    .lt-ie9 .fa-rotate-90 {
+        padding-right:10px;
+        margin-top:10px;
+        background:none;
+        vertical-align:central;
+    }
+
+    .mp-menu ul li > a {
+        padding:9px;
+        font-size:1.5em;
+        font-family:'Open Sans Condensed', sans-serif;
+        color:#0094ff;
+        line-height:1em;
+    }
+        .mp-menu ul li > a::after {
+            font-size:1em;
+            padding-right:9.6px;
+            color:#0094ff;
+            float:left;
+            font-family: FontAwesome;
+            content: "\f104";
+            font-weight:normal;
+            font-style:normal;
+        }
+
+    .mp-menu a{
+        font-size: 1.5em;
+        padding: 4px 0px 4px 15px;
+        display: block;
+    }
+
+    h2 > .fa-times, a > .fa-filter {
+        float:right;
+    }
+
+    .block {
+        margin:5px;
+        fill-opacity:0.99;
+        position:relative;
+        display:block;
+    }
+
+    .area {
+        font-weight:300;
+        color:rgb(128, 128, 128);
+        display:block;
+        margin-left:9px;
+    }
+    .coe {
+        font-weight:800;
+    }
+    .title {
+        
+    }
+    
+    .blockContent {
+        padding:5px;
+        max-width:900px !important;
+        display:block;
+    }
+        .blockContent:hover {
+            background-color:#0081de;
+            color:rgb(255, 255, 255) !important;
+        }
+    .titleColumn {
+        text-align:right;
+    }
+
+    .backToTop {
+        position: fixed;
+        bottom: 0px;
+        right: 0px;
+        text-decoration: none;
+        color: #000000;
+        background-color: rgba(135, 135, 135, 0.50);
+        font-size: 12px;
+        padding: 1em;
+        display: none;
+    }
+
+    .backToTop:hover {    
+        background-color: rgba(135, 135, 135, 0.50);
+    }
+
+    .left-off-canvas-menu {
+        height: 100%;
+    }
+
+    .list {
+        margin:0px;
+        font-size:0;
+        
+    }
+
+
+    #myTags {
+        width:100%;
+		position:fixed;
+		top:34px;
+		width:50%;
+		padding-right:8px;
+		z-index:5003;
+    }
+	.lt-ie9 #myTags {
+		top:77px;
+		padding-right:9px;
+	}
+	#myTags {
+		pointer-events: none !important;
+	}
+	.tagit-choice {
+		pointer-events:all !important;
+	}
+
+
+    .tagit-choice {
+        background-color:#FFF0B3;
+        padding:15px;
+        width:100%;
+    }
+    .tagit-choice:first-child {
+        margin-top:3px;
+    }
+    .tagit-label {
+        color:black;
+        font-weight:bold;
+    }
+    .text-icon {
+        float:right;
+        position:relative;
+        top:-10px;
+        font-size:xx-large;
+        color:black;
+    }
+
+    .doubleList {
+        -moz-column-count: 2;
+        -moz-column-gap: 0px;
+        -webkit-column-count: 2;
+        -webkit-column-gap: 0px;
+        column-count: 2;
+        column-gap: 0px;
+    }
+    .tagList {
+        -moz-column-count: 1;
+        -moz-column-gap: 0px;
+        -webkit-column-count: 1;
+        -webkit-column-gap: 0px;
+        column-count: 1;
+        column-gap: 0px;
+        list-style-type: none;
+        padding:0; margin:0;
+    }
+
+    .search {
+        float:left;
+        background-image: url(http://www.levenmetwater.nl/static/global/images/icon-search.png);
+        background-position: 10px center;
+        background-repeat: no-repeat;
+        margin: 0px !important;
+        width: 100%;
+        height: 40px;
+        padding: 10px 45px 10px 10px !important;
+        text-indent: 20px;
+        -webkit-transition: all 0.2s;
+        -moz-transition: all 2s;
+        transition: all 0.2s;
+        border:none;
+    }
+    .lt-ie9 .search {
+        padding-left:30px !important;
+    }
+        .search:focus {
+            background-position: -20px center;
+            text-indent: 20px;
+        }
+
+        .search::-webkit-search-cancel-button{
+            position:relative;
+            right:25px;
+  
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius:0px;
+        }
+            .search::-webkit-search-cancel-button::before {
+                font-family: FontAwesome;
+                font-size:large;
+                content: "\f057";
+                color:black;
+
+            }
+
+    .filterExpand {
+        color:white;
+        position:relative;
+        top:-37px;
+        padding: 5px 0 0px 15px;
+        float: right;
+        width: 50px;
+        margin: 0px !important;
+        font-size: small;
+        height: 37px !important;
+        overflow: hidden !important;
+        vertical-align: middle;
+        background-color: #0094ff;
+    }
+
+
+    #menuFilter .multilevelpushmenu_wrapper h2, #menuFilter3D h2 {
+	    font-size: medium !important;
+	    line-height: 1em;
+	    font-weight: lighter;
+        margin-top:0;
+	    color: white;
+        height:50px;
+	    padding: 1em .4em .4em .4em;
+        background-color: #0094ff;
+        font-family: Optima, Segoe, "Segoe UI", Candara, Calibri, Arial, sans-serif;
+    }
+
+    #menuFilter .levelHolderClass, .mp-level {
+        background-color:white !important;
+        color:white;
+    }
+
+    /*#menuFilter li:hover {
+        background-color:#54c5ff !important;
+        border:0 !important;
+    }*/
+
+
+    #menuFilter li {
+        border:0 !important;
+        padding:0;
+    }
+
+    #menuFilter .multilevelpushmenu_wrapper a {
+        color:#0094ff !important;
+        border:0 !important;
+        padding:9px;
+    }
+
+    .doubleList li:hover {
+    }
+
+    .backItemClass {
+        background-color:white !important;
+        color:#0094ff !important;
+        border:0px !important;
+    }
+        .backItemClass a {
+            font-size: medium !important;
+        }
+        /*.backItemClass:hover {
+            background-color:#54c5ff !important;
+        }*/
+
+     .filterCheck::before {
+        float:right;
+        font-family: FontAwesome;
+        /*font-size:large;*/
+        content: "\f00c";
+        color:white;
+        padding-right:5px;
+    }
+
+    .filterCheck {
+        background-color:#4cff00 !important;
+        color:white !important; 
+    }
+
+    /*#menuFilter .filterCheck:hover {
+        background-color:#a3ff7c !important;
+    }*/
+
+    .ui-autocomplete-input {
+        visibility:hidden !important;
+    }
+
+	.inner-wrap-pad {
+		height:37px;
+	}
+
+    #inner-wrap {
+        position:absolute;
+		width:inherit !important;
+		height:100%;
+		width:50%;
+    }
+
+	.lt-ie9 .inner-wrap {
+		top:40px;
+	}
+
+
+
+	.list {
+		width:100%;
+	}
+
+
+	#panel-side {
+		width:50%;
+		float:right !important;
+	}
+
+	#panel-indicatorlist {
+		float:left !important;
+		width:50% ;
+		margin:0;
+		padding:0;
+
+	}
+
+	#overlay {
+
+		z-index:7001;
+
+		background-color:grey;
+		/* IE 8 */
+		-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+
+		/* IE 5-7 */
+		filter: alpha(opacity=50);
+
+		/* Netscape */
+		-moz-opacity: 0.5;
+
+		/* Safari 1.x */
+		-khtml-opacity: 0.5;
+
+		/* Good browsers */
+		opacity: 0.5;
+	}
+
+
+	#chartTest {
+		height: 400px;
+		position: fixed;
+		top: 25%;
+		left:50%;
+		pointer-events:none !important;
+	}
+	#chartData {
+		height: 144px;
+		left: 50%;
+		margin: 0;
+		padding: 0;
+		position: fixed;
+		top: 25%;
+		width: 50%;
+	}
+		#chartData table tr td, #chartData table tr th {
+			font-size: 0.35em !important;
+			text-align: center;
+			background-color:#2d3947;
+			color:rgb(243, 243, 243);
+			padding: 0.5625em 0.625em;
+			line-height: 1.125em;
+		}
+		#chartData table {
+			width:100%;
+			background-color:#2d3947;
+			color:rgb(243, 243, 243);
+			border:none;
+
+		}
+			#chartData table tr.chart-target-values td {
+				color:#ff2032;
+			}
+			#chartData table tr.chart-comparator-values td {
+				color:#ff6500;
+				cursor: pointer; 
+				cursor: hand;
+			}
+			#chartData table tr.active-comparator td, #chartData table tr.active-target td {
+				background:#1e283a;
+			}
+/*	#ajax-loader {
+		position: fixed;
+		top: 40%;
+		left:65%;
+		display:none;
+	}*/
+
+	#panel-side {
+		overflow:hidden;
+	}
+
+	#panel-indicatorlist {
+		background-color:rgb(243, 243, 243);
+	}
+
+	#pushobjLazy, .container {
+		filter: none !important;
+		background-color: #2D3947 !important;
+	}
+
+
+
+	.scroller, .scroller-inner, #mp-pusher, #pushobjLazy, .header {
+		height:100% !important;
+	}
+	#pushList {
+		height:100%;
+    }
+
+	 .active-indicator {
+		background-color:#ff6500 !important;
+	}
+
+	body {
+		overflow:hidden;
+	}
+	.inner-wrap {
+		overflow: auto;
+	}
+
+	#panel-indicatorlist-pad {
+		background-color:#FFF0B3;
+		width:50%;
+	}
+
+	#panel-indicatorlist-overlay {
+		height:100%;
+		width:50%;
+		background-color:white;
+	}
+
+	.lt-ie9 #menuFilter, #menuFilter_multilevelpushmenu, .levelHolderClass ltr, .multilevelpushmenu_inactive {
+		overflow:hidden !important;
+		z-index:7002 !important;
+	}
+
+	.lt-ie9 #trigger {
+		top:-40px;
+		height:40px !important;
+	}
+
+	.lt-ie9 a.filterMenuItem{
+		font-size:0.9em !important;
+		font-weight:700 !important;
+	}
+	.lt-ie9 a.filterMenuItem-top {
+		font-size: 0.8em !important;
+		font-weight:700 !important;
+	}
+
+	.active-indicator .area {
+		color:rgb(243, 243, 243);
+	}
+</style>
+
+
+
+
+
+
+<div class="container">
+    <!-- Push Wrapper -->
+    <div class="mp-pusher" id="mp-pusher">
+
+        <nav id="menuFilter3D" class="mp-menu">
+            <div class="mp-level">
+            <h2 class="backBtnMain mp-back"><i class="fa fa-times backBtnMain mp-back"></i>Filter by:</h2>
+            <ul>
+                <li>
+                    <a class="filterMenuItem-top" href="#"><i class="fa fa-filter"></i>CoE</a>
+                    <div class="mp-level">
+                        <h2 class="backBtn mp-back"><i class="fa fa-times backBtn mp-back"></i>Filter by CoE:</h2>
+                        <ul class="doubleList">
+                            @foreach (var coe in Model.allCoEs)
+                            {
+                                <li>
+                                    <small><a href="#" class="filterMenuItem" field="coeID" id="@coe.CoE_ID" name="@coe.CoE"><i class="fa fa-angle-right"></i> @coe.CoE_Abbr </a></small>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </li>
+                <li>
+                    <a class="filterMenuItem-top" href="#"><i class="fa fa-filter"></i>Quadrant</a>
+                    <div class="mp-level">
+                        <h2 class="backBtn mp-back"><i class="fa fa-times backBtn mp-back"></i>Filter by Quadrant:</h2>
+                        <ul>
+                            @foreach (var area in Model.allAreas)
+                            {
+                                <li>
+                                    <small><a href="#" class="filterMenuItem" field="areaID" id="@area.Area_ID" name="@area.Area"><i class="fa fa-angle-right"></i> @area.Area</a></small>
+                                </li>
+                    }
+                        </ul>
+                    </div>
+                </li>
+                <li>
+                    <a class="filterMenuItem-top" href="#"><i class="fa fa-filter"></i>Type</a>
+                    <div class="mp-level">
+                        <h2 class="backBtn mp-back"><i class="fa fa-times backBtn mp-back"></i>Filter by Type:</h2>
+                        <ul>
+                            @foreach (var footnote in Model.allFootnotes)
+                            {
+                                <li>
+                                    <small><a href="#" class="filterMenuItem" field="footnoteID" id="@footnote.Footnote_ID" name="@footnote.Footnote"><i class="fa fa-angle-right"></i> @footnote.Footnote</a></small>
+                                </li>
+                    }
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+                </div>
+        </nav>
+
+        <div class="scroller">
+            <div class="scroller-inner">
+                <div id="pushList">
+
+		<div class="filter-bar">
+			<input class="search" id="search_input" name="Search" type="search" placeholder="Search" />
+			<a><span id="trigger" class="filterExpand menu-trigger"><i class="fa fa-filter fa-2x"></i></span></a>
+		</div>
+		<ul id="myTags" class="tagList">
+		</ul>
+
+						<div class="inner-wrap" id="inner-wrap">
+
+							<div id="panel-indicatorlist-pad"></div>
+							<div id="panel-indicatorlist">
+								<ul class="list">
+									@foreach (var item in Model.allIndicators.OrderBy(x => x.Indicator))
+									{
+										var coeID = item.Indicator_CoE_Map.Count > 0 ? item.Indicator_CoE_Map.FirstOrDefault().CoE_ID : 0;
+										var areaID = (int?)item.Area_ID ?? 0;
+										<div class="block coeID-@coeID areaID-@areaID @foreach (var footnote in item.Indicator_Footnote_Map)
+																					{ @:footnoteID-@footnote.Footnote_ID 
+																					}" indicatorId="@item.Indicator_ID">
+											<li>
+												<div class="row blockContent">
+													<div class="small-4 columns" style="font-size: small">
+														<i class="fa fa-angle-right"></i>
+														<span class="coe">@Html.DisplayTextFor(modelItem => item.Indicator_CoE_Map.FirstOrDefault().CoE.CoE_Abbr).ToString().Trim()</span>
+														<br />
+														<span class="area">@Html.DisplayTextFor(modelIem => item.Area.Area).ToString().Trim()</span>
+													</div>
+													<div class="small-8 columns titleColumn">
+														<span class="title" style="font-size: small">@Html.DisplayTextFor(modelItem => item.Indicator).ToString().Trim()</span>
+													</div>
+												</div>
+											</li>
+										</div>
+									}   
+								</ul>
+							</div>
+							<div id="panel-side">
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+    </div>
+    <!-- /pusher -->
+</div><!-- /container -->
+
+
+<div id="menuFilter">
+    <nav>
+        <h2 class="backBtnMain"><i class="fa fa-times backBtnMain"></i>Filter by:</h2>
+        <ul>
+            <li>
+                <a class="filterMenuItem-top href="#"><i class="fa fa-filter"></i>CoE</a>
+                <h2 class="backBtn"><i class="fa fa-times backBtn"></i>Filter by CoE:</h2>
+                <ul class="doubleList">
+                    @foreach (var coe in Model.allCoEs)
+                    {
+                        <li>
+                            <small><a href="#" class="filterMenuItem" field="coeID" id="@coe.CoE_ID" name="@coe.CoE"><i class="fa fa-angle-right"></i> @coe.CoE_Abbr </a></small>
+                        </li>
+                    }
+                </ul>
+            </li>
+            <li>
+                <a class="filterMenuItem-top href="#"><i class="fa fa-filter"></i>Quadrant</a>
+                <h2 class="backBtn"><i class="fa fa-times backBtn"></i>Filter by Quadrant:</h2>
+                <ul>
+                    @foreach (var area in Model.allAreas)
+                    {
+                        <li>
+                            <small><a href="#" class="filterMenuItem" field="areaID" id="@area.Area_ID" name="@area.Area"><i class="fa fa-angle-right"></i> @area.Area</a></small>
+                        </li>
+                    }
+                </ul>
+            </li>
+            <li>
+                <a class="filterMenuItem-top href="#"><i class="fa fa-filter"></i>Type</a>
+                <h2 class="backBtn"><i class="fa fa-times backBtn"></i>Filter by Type:</h2>
+                <ul>
+                    @foreach (var footnote in Model.allFootnotes)
+                    {
+                        <li>
+                            <small><a href="#" class="filterMenuItem" field="footnoteID" id="@footnote.Footnote_ID" name="@footnote.Footnote"><i class="fa fa-angle-right"></i> @footnote.Footnote</a></small>
+                        </li>
+                    }
+                </ul>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div id="chartTest" class="mlpush-chart" style="height:400px;"></div>
+<div id="chartData" class="mlpush-chart">
+	<table>
+		<thead>
+			<tr>
+				<th></th>
+				<th>@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_3", fiscalYear)).DisplayName</th>
+				<th>@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_2", fiscalYear)).DisplayName</th>
+				<th>@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_1", fiscalYear)).DisplayName</th>
+				<th>@FiscalYear.FYStrFullFormated("FY_0", fiscalYear) Q1</th>
+				<th>@FiscalYear.FYStrFullFormated("FY_0", fiscalYear) Q2</th>
+				<th>@FiscalYear.FYStrFullFormated("FY_0", fiscalYear) Q3</th>
+				<th>@FiscalYear.FYStrFullFormated("FY_0", fiscalYear) Q4</th>
+				<th>@FiscalYear.FYStrFullFormated("FY_0", fiscalYear) YTD</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr class="chart-comparator-values active-comparator" comparator="1">
+				<td>Comperator</td>
+				<td id="chart-comparator-0"></td>
+				<td id="chart-comparator-1"></td>
+				<td id="chart-comparator-2"></td>
+				<td id="chart-comparator-3"></td>
+				<td id="chart-comparator-4"></td>
+				<td id="chart-comparator-5"></td>
+				<td id="chart-comparator-6"></td>
+				<td id="chart-comparator-7"></td>
+			</tr>
+			<tr class="chart-comparator-values" comparator="2">
+				<td>Comperator2</td>
+				<td id="chart-comparator-2-0"></td>
+				<td id="chart-comparator-2-1"></td>
+				<td id="chart-comparator-2-2"></td>
+				<td id="chart-comparator-2-3"></td>
+				<td id="chart-comparator-2-4"></td>
+				<td id="chart-comparator-2-5"></td>
+				<td id="chart-comparator-2-6"></td>
+				<td id="chart-comparator-2-7"></td>
+			</tr>
+			<tr class="chart-target-values active-target">
+				<td>Target</td>
+				<td id="chart-target-0"></td>
+				<td id="chart-target-1"></td>
+				<td id="chart-target-2"></td>
+				<td id="chart-target-3"></td>
+				<td id="chart-target-4"></td>
+				<td id="chart-target-5"></td>
+				<td id="chart-target-6"></td>
+				<td id="chart-target-7"></td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+<div class="backToTop"><i class="fa fa-arrow-up"></i></div>
+
+<script type="text/javascript" src="../../Scripts/jquery-1.11.0.min.js" ></script>
+<script type="text/javascript" src="/../../Scripts/jquery-ui-1.8.20.min.js" ></script>
+<script src="~/Scripts/highcharts.src.js"></script>
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.min.css">
+<script src="~/Scripts/tag-it.min.js"></script>
+
+<link rel="stylesheet" href="../../Scripts/jquery.multilevelpushmenu.css" />
+<script type="text/javascript" src="../../Scripts/jquery.multilevelpushmenu.js" ></script>
+
+<script type="text/javascript" src="~/Scripts/classie.js"></script>
+<script type="text/javascript" src="~/Scripts/mlpushmenu.js"></script>
+
+<script type="text/javascript">
+    if (!$("html").hasClass("lt-ie9")) {
+        new mlPushMenu(document.getElementById('menuFilter3D'), document.getElementById('trigger'));
+    }
+
+    $(document).ready(function ($) {
+    	
+    	var sComparatorYTD;
+    	var sComparatorYTD1;
+    	var sComparatorYTD2;
+    	var chartWidth;
+    	var indicatorTitle
+    	var maxY;
+    	var ticks;
+    	var valuesArray;
+    	var sTargetYTD
+    	var s1;
+
+    	var makePlotLines = function(comparatorObjArr){
+    		return [{
+    			color: '#ff6500',
+    			value: comparatorObjArr[0],
+    			width: '2',
+    			percentFrom: 0,
+    			percentTo: 0.125
+    		}, {
+    			color: '#ff6500',
+    			value: comparatorObjArr[1],
+    			width: '2',
+    			percentFrom: 0.125,
+    			percentTo: 0.25
+    		}, {
+    			color: '#ff6500',
+    			value: comparatorObjArr[2],
+    			width: '2',
+    			percentFrom: 0.25,
+    			percentTo: 0.375
+    		}, {
+    			color: '#ff6500',
+    			value: comparatorObjArr[3],
+    			width: '2',
+    			percentFrom: 0.375,
+    			percentTo: 0.5
+    		}, {
+    			color: '#ff6500',
+    			value: comparatorObjArr[4],
+    			width: '2',
+    			percentFrom: 0.5,
+    			percentTo: 0.625
+    		},{
+    			color: '#ff6500',
+    			value: comparatorObjArr[5],
+    			width: '2',
+    			percentFrom: 0.625,
+    			percentTo: 0.75
+    		}, {
+    			color: '#ff6500',
+    			value: comparatorObjArr[6],
+    			width: '2',
+    			percentFrom:  0.75,
+    			percentTo: 0.875
+    		},{
+    			color: '#ff6500',
+    			value: comparatorObjArr[7],
+    			width: '2',
+    			percentFrom:  0.875,
+    			percentTo: 1
+    		},{
+    			color: '#ff2032',
+    			value: sTargetYTD[0],
+    			width: '2',
+    			percentFrom: 0,
+    			percentTo: 0.125
+    		}, {
+    			color: '#ff2032',
+    			value: sTargetYTD[1],
+    			width: '2',
+    			percentFrom: 0.125,
+    			percentTo: 0.25
+    		}, {
+    			color: '#ff2032',
+    			value: sTargetYTD[2],
+    			width: '2',
+    			percentFrom: 0.25,
+    			percentTo: 0.375
+    		}, {
+    			color: '#ff2032',
+    			value: sTargetYTD[3],
+    			width: '2',
+    			percentFrom: 0.375,
+    			percentTo: 0.5
+    		}, {
+    			color: '#ff2032',
+    			value: sTargetYTD[4],
+    			width: '2',
+    			percentFrom: 0.5,
+    			percentTo: 0.625
+    		},{
+    			color: '#ff2032',
+    			value: sTargetYTD[5],
+    			width: '2',
+    			percentFrom: 0.625,
+    			percentTo: 0.75
+    		}, {
+    			color: '#ff2032',
+    			value: sTargetYTD[6],
+    			width: '2',
+    			percentFrom:  0.75,
+    			percentTo: 0.875
+    		},{
+    			color: '#ff2032',
+    			value: sTargetYTD[7],
+    			width: '2',
+    			percentFrom:  0.875,
+    			percentTo: 1
+    		}]
+    	}
+
+        $("#overlay").hide()
+        $('#chartData').hide();
+        //$('#panel-indicatorlist').width('50%');
+        //$('#panel-side').width('50%');
+        //$('#inner-wrap').width('50%');
+        chartWidth = $('.inner-wrap').width()/2 -20;
+        $('#chartData').width('50%');
+        $('#chartData').width($('#chartData').width()-20);
+        $('#chartData').css('top','25%');
+        $('#chartData').css('top',$('#chartTest').position().top+$('#chartTest').height());
+        $(".blockContent").on("click", function () {
+        	$('#chartData').show();
+        	var indicatorID = $(this).closest(".block").attr("indicatorID");
+        	var currPath = window.location.pathname
+        	indicatorTitle = $(this).closest(".block").children('li:first').children('div:first').children('.titleColumn').children('.title').text();
+        	
+        	//$('#ajax-loader').show();
+
+        	//window.location.href = currPath.charAt(currPath.length - 1) == "/" ? "details?indicatorID=" + indicatorID + "&fiscalYear=" + @fiscalYear :
+        	//                                                                        "details?indicatorID=" + indicatorID + "&fiscalYear=" + @fiscalYear ;
+        	$('.active-indicator').removeClass('active-indicator')
+        	$(this).closest('.block').addClass('active-indicator');
+        	$.post('details',{ indicatorID: indicatorID, fiscalYear: @fiscalYear }, function(data){
+
+        		//$('#ajax-loader').hide();
+        		var currency = false;
+        		var time = false;
+        		var precision;
+
+        		valuesArrayString = [
+					data['FY_Q1'],
+					data['FY_Q2'],
+					data['FY_Q3'],
+					data['FY_Q4'],
+					data['FY_3_YTD'],
+					data['FY_3_YTD'],
+					data['FY_2_YTD'],
+					data['FY_1_YTD'],
+					data['FY_YTD'],
+					data['Target'],
+					data['Comparator']
+        		];
+        		for (i = 0; i < valuesArrayString.length; i++) {
+        			if (valuesArrayString[i] != null) {
+        				precision = valuesArrayString[i].indexOf('.') != -1 ? valuesArrayString[i].split('.')[1].length : 0;
+        			}
+        		}
+        		var chartWidth = 300 - 20 - 20;
+
+        		var regex = /[^0-9.]+/g;
+
+        		var valuesArray = [
+				isNaN(parseFloat(data['FY_Q1'], 10)) ?
+                    0 : parseFloat(data['FY_Q1'], 10),
+                isNaN(parseFloat(data['FY_Q2'], 10)) ?
+                    0 : parseFloat(data['FY_Q2'], 10),
+                isNaN(parseFloat(data['FY_Q3'], 10)) ?
+                    0 : parseFloat(data['FY_Q3'], 10),
+                isNaN(parseFloat(data['FY_Q4'], 10)) ?
+                    0 : parseFloat(data['FY_Q4'], 10),
+                isNaN(parseFloat(data['FY_1_YTD'], 10)) ?
+                    0 : parseFloat(data['FY_1_YTD'], 10),
+                isNaN(parseFloat(data['FY_2_YTD'], 10)) ?
+                    0 : parseFloat(data['FY_2_YTD'], 10),
+                isNaN(parseFloat(data['FY_3_YTD'], 10)) ?
+                    0 : parseFloat(data['FY_3_YTD'], 10),
+                isNaN(parseFloat(data['FY_YTD'], 10)) ?
+                    0 : parseFloat(data['FY_YTD'], 10),
+                isNaN(parseFloat(data['TargetNum'], 10)) ?
+                    0 : parseFloat(data['TargetNum'], 10),
+                isNaN(parseFloat(data['Comparator'], 10)) ?
+                    0 : parseFloat(data['Comparator'], 10)
+        		];
+
+        		var colorsArray = [
+					data['Q1_Color'],
+					data['Q2_Color'],
+					data['Q3_Color'],
+					data['Q4_Color'],
+					data['FY_3_YTD_Color'],
+					data['FY_2_YTD_Color'],
+					data['FY_1_YTD_Color'],
+					data['YTD_Color'],
+					data['FY_3_YTD_Color']
+        		];
+
+        		/*polyfill*/
+        		if (!Array.prototype.filter) {
+        			Array.prototype.filter = function (fun /*, thisp */) {
+        				"use strict";
+
+        				if (this === void 0 || this === null)
+        					throw new TypeError();
+
+        				var t = Object(this);
+        				var len = t.length >>> 0;
+        				if (typeof fun !== "function")
+        					throw new TypeError();
+
+        				var res = [];
+        				var thisp = arguments[1];
+        				for (var i = 0; i < len; i++) {
+        					if (i in t) {
+        						var val = t[i]; // in case fun mutates this
+        						if (fun.call(thisp, val, i, t))
+        							res.push(val);
+        					}
+        				}
+
+        				return res;
+        			};
+        		}
+
+        		function remove(arrOriginal, elementToRemove) {
+        			return arrOriginal.filter(function (el) { return el !== elementToRemove });
+        		}
+
+        		var maxYarray = Math.max.apply(Math, valuesArray) + 0.01;
+        		maxY = maxYarray;
+        		var maxLog = Math.pow(10, Math.floor(Math.log(maxY / 2) / Math.log(10))) / 2
+        		if (maxY == 1) { precision = 1 }
+        		maxY = Math.abs(maxYarray) > 1 ? Math.ceil(maxYarray / maxLog) * maxLog : maxYarray;
+
+        		var minY = Math.min.apply(Math, remove(valuesArray, 0));
+        		minY = Math.abs(minY) > 1 ? Math.floor(minY / 10) * 10 : minY
+        		minY = minY < 0 ? minY : 0;
+
+        		var tickInterval = Math.pow(10, Math.floor(Math.log(maxY / 2 - 0.01) / Math.log(10)));
+        		tickInterval = maxY / tickInterval > 10 ? tickInterval * 2 : tickInterval;
+        		tickInterval = maxY / tickInterval < 5 ? tickInterval / 2 : tickInterval;
+        		maxY = maxY % tickInterval === 0 ? maxY : maxY + tickInterval / 2;
+        		maxY = maxY / maxYarray > 2 ? maxY / 2 : maxY;
+
+        		s1 = [
+					{y:valuesArray[4],color:'#368EBE'},
+					{y:valuesArray[5],color:'#368EBE'},
+					{y:valuesArray[6],color:'#368EBE'},
+					{y:valuesArray[0],color:'#368EBE'},
+					{y:valuesArray[1],color:'#368EBE'},
+					{y:valuesArray[2],color:'#368EBE'},
+					{y:valuesArray[3],coor:'#368EBE'},
+					{y:valuesArray[7],color:'#368EBE'}
+        		];
+
+        		var sComparator = [
+					0,
+					0,
+					0,
+					valuesArray[9]
+        		];
+
+        		var sTarget = [
+					0,
+					0,
+					0,
+					valuesArray[8]
+        		];
+
+        		var lowNumToHide = -10000000000;
+        		sComparatorYTD1 = [
+					lowNumToHide,
+					lowNumToHide,
+					lowNumToHide,
+					valuesArray[9],
+					valuesArray[9],
+					valuesArray[9],
+					valuesArray[9],
+					valuesArray[9]
+        		];
+        		sComparatorYTD2 = [
+					lowNumToHide,
+					lowNumToHide,
+					lowNumToHide,
+					valuesArray[9]*0.6,
+					valuesArray[9]*0.5,
+					valuesArray[9]*0.4,
+					valuesArray[9]*0.3,
+					valuesArray[9]*0.3
+        		];
+        		sComparatorYTD = sComparatorYTD1;
+
+        		sTargetYTD = [
+					lowNumToHide,
+					lowNumToHide,
+					lowNumToHide,
+					valuesArray[8],
+					valuesArray[8],
+					valuesArray[8],
+					valuesArray[8],
+					valuesArray[8]
+        		];
+
+        		var checkIfNullOrEmpty = function(text){
+        			var outText = "";
+        			if (text != lowNumToHide &&
+						text != 0){
+        				outText= text
+        			}
+					return outText
+        		}
+
+        		$('#chart-comparator-0').html(
+					checkIfNullOrEmpty(sComparatorYTD1[0])
+				);
+        		$('#chart-comparator-1').html(
+					checkIfNullOrEmpty(sComparatorYTD1[1])
+				);
+        		$('#chart-comparator-2').html(
+					checkIfNullOrEmpty(sComparatorYTD1[2])
+				);
+        		$('#chart-comparator-3').html(
+					checkIfNullOrEmpty(sComparatorYTD1[3])
+				);
+        		$('#chart-comparator-4').html(
+					checkIfNullOrEmpty(sComparatorYTD1[4])
+				);
+        		$('#chart-comparator-5').html(
+					checkIfNullOrEmpty(sComparatorYTD1[5])
+				);
+        		$('#chart-comparator-6').html(
+					checkIfNullOrEmpty(sComparatorYTD1[6])
+				);
+        		$('#chart-comparator-7').html(
+					checkIfNullOrEmpty(sComparatorYTD1[7])
+				);
+        		$('#chart-comparator-2-0').html(
+					checkIfNullOrEmpty(sComparatorYTD2[0])
+				);
+        		$('#chart-comparator-2-1').html(
+					checkIfNullOrEmpty(sComparatorYTD2[1])
+				);
+        		$('#chart-comparator-2-2').html(
+					checkIfNullOrEmpty(sComparatorYTD2[2])
+				);
+        		$('#chart-comparator-2-3').html(
+					checkIfNullOrEmpty(sComparatorYTD2[3])
+				);
+        		$('#chart-comparator-2-4').html(
+					checkIfNullOrEmpty(sComparatorYTD2[4])
+				);
+        		$('#chart-comparator-2-5').html(
+					checkIfNullOrEmpty(sComparatorYTD2[5])
+				);
+        		$('#chart-comparator-2-6').html(
+					checkIfNullOrEmpty(sComparatorYTD2[6])
+				);
+        		$('#chart-comparator-2-7').html(
+					checkIfNullOrEmpty(sComparatorYTD2[7])
+				);
+        		$('#chart-target-0').html(
+					checkIfNullOrEmpty(sTargetYTD[0])
+				);
+        		$('#chart-target-1').html(
+					checkIfNullOrEmpty(sTargetYTD[1])
+				);
+        		$('#chart-target-2').html(
+					checkIfNullOrEmpty(sTargetYTD[2])
+				);
+        		$('#chart-target-3').html(
+					checkIfNullOrEmpty(sTargetYTD[3])
+				);
+        		$('#chart-target-4').html(
+					checkIfNullOrEmpty(sTargetYTD[4])
+				);
+        		$('#chart-target-5').html(
+					checkIfNullOrEmpty(sTargetYTD[5])
+				);
+        		$('#chart-target-6').html(
+					checkIfNullOrEmpty(sTargetYTD[6])
+				);
+        		$('#chart-target-7').html(
+					checkIfNullOrEmpty(sTargetYTD[7])
+				);
+
+        		var comparator_FY = valuesArray[9];
+        		var target_FY = valuesArray[8];
+
+        		var target_4 = valuesArray[8];
+
+        		ticks = ['@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_3", fiscalYear)).DisplayName',
+								'@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_2", fiscalYear)).DisplayName',
+								'@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_1", fiscalYear)).DisplayName',
+								'@FiscalYear.FYStrFullFormated("FY_0", fiscalYear) Q1',
+								'@FiscalYear.FYStrFullFormated("FY_0", fiscalYear) Q2', 
+								'@FiscalYear.FYStrFullFormated("FY_0", fiscalYear) Q3',
+								'@FiscalYear.FYStrFullFormated("FY_0", fiscalYear) Q4',
+								'@FiscalYear.FYStrFullFormated("FY_0", fiscalYear) YTD'];
+
+        		var comparatorSrc = $('.active-comparator').attr('comparator');
+        		if (comparatorSrc == 1){
+        			makeChart(sComparatorYTD1, 200);
+        		} else{
+        			makeChart(sComparatorYTD2, 200);
+        		}
+        	});
+        });
+
+    	$('#chartData table tr.chart-comparator-values td').on('click',function(){
+    		$('#chartData table tr.chart-comparator-values').removeClass('active-comparator');
+    		$(this).parent().addClass('active-comparator');
+    		var comparatorSrc = $(this).parent().attr('comparator');
+    		if (comparatorSrc == 1){
+    			makeChart(sComparatorYTD1, 0);
+    		} else if(comparatorSrc == 2){
+    			makeChart(sComparatorYTD2, 0);
+    		}
+    	});
+
+    	var makeChart = function(comparatorArr, duration){
+    		$(function () {
+
+    			Highcharts.setOptions({
+    				colors: ['#368EBE', "#0094fe"],
+    				chart: {
+    					renderTo: 'chartTest',
+    					type: 'column',
+    					backgroundColor: "#2D3947",
+    					width: chartWidth
+    				},
+    				title: {
+    					style: {
+    						color: '#fff'
+    					}
+    				},
+    				subtitle: {
+    					style: {
+    						color: '#8c8c95'
+    					}
+    				},
+    				plotOptions: {
+    					column: {
+    						stacking: 'normal'
+    					},
+    					series: {
+    						states: {
+    							hover: {
+    								enabled: false
+    							}
+    						},
+    						dataLabels: {
+    							formatter:function() {
+    								if(this.y != 0) {
+    									return this.y;
+    								}
+    							},
+    							enabled: true,
+    							inside: true,
+    							color: '#fff'
+    						},
+    						borderWidth: 0,
+    						shadow: false,
+    						animation: {
+    							duration: duration
+    						}
+    					}
+    				},
+    				tooltip: {
+    					enabled: false
+    				},
+    				xAxis: {
+    					labels: {
+    						style: {
+    							color: '#fff'
+    						}
+    					}
+    				},
+    				yAxis: {
+    					gridLineColor: '#5C5C63',
+    					gridLineWidth: 1,
+    					labels: {
+    						style: {
+    							color: '#fff'
+    						}
+    					}
+    				}
+    			});
+    		});
+
+    		chart1 = new Highcharts.Chart({
+    			title: {
+    				text: indicatorTitle
+    			},
+    			subtitle: {
+    				text: '@FiscalYear.FYStrFull("FY_Header", fiscalYear)'
+        		},
+			    xAxis: {
+			        categories: ticks,
+			        tickLength: 0
+			    },
+			    yAxis: [{
+			        title: {
+			        	text: ''
+			        },
+			        max: maxY,
+			        plotLines: makePlotLines(comparatorArr)
+			    }],
+			    series: [{
+			        name: 'test',
+			        data: s1,
+			        index: 50
+			    }],
+			    legend: {
+			        enabled: false
+			    },
+			    credits: [{
+			        enabled: 'false'
+			    }]
+			});
+    	}
+    	
+    	
+        if ($("html").hasClass("lt-ie9")) {
+            $('#menuFilter').multilevelpushmenu({
+                fullCollapse: true,
+                menuHeight: '100%',//$(window).height(),
+                collapsed: true,
+                menuWidth: '30%',
+                onExpandMenuStart: function () {
+                    $("#overlay").show();
+                },
+                onCollapseMenuStart: function () {
+                    if ($('#menuFilter').multilevelpushmenu('activemenu').attr('data-level') == 0) {
+                    	$("#overlay").hide();
+                    }
+                },
+            });
+
+            $('.backItemClass').remove();
+
+            $('.backBtn').on('click', function () {
+                $('#menuFilter').multilevelpushmenu('collapse', 0)
+            });
+
+            $('.backBtnMain').on('click', function () {
+                $('#menuFilter').multilevelpushmenu('collapse')
+            });
+
+            $('.filterExpand').click(function () {
+                $('#menuFilter').multilevelpushmenu('expand');
+            });
+
+            $('#menuFilter').multilevelpushmenu('redraw');
+        }
+
+        var hidden = false;
+
+        $('#search_input').on('keyup change search click', function () {
+            var valThis = $(this).val().toLowerCase();
+            if (valThis == "") {
+                $(".block").removeClass('textFiltered');
+            } else {
+                $('.block > li > .row > .titleColumn > .title').each(function () {
+                    var text = $(this).text().toLowerCase();
+                    var listItems;
+                    if (text.indexOf(valThis) >= 0) {
+                        $(this).closest(".block").removeClass('textFiltered');
+                    } else {
+                        $(this).closest(".block").addClass('textFiltered');
+                    }
+                });
+            };
+            refreshView();
+        });
+
+
+        $("#myTags").tagit({
+            onTagClicked: function (event, ui) {
+            	$("#myTags").tagit("removeTagByLabel", ui.tagLabel);
+            	refreshView();
+            },
+            beforeTagRemoved: function (event, ui) {
+                var field = ui.tag.attr('field');
+                var id = ui.tag.attr('id');
+                updateFilterHide(id, field);
+                $(".filterMenuItem[id='" + id + "'][field='" + field + "']").closest('li').removeClass('filterCheck');
+                refreshView();
+            },
+            afterTagRemoved: function (event, ui) {
+                if ($("#myTags").tagit("assignedTags").length === 0) {
+                    $.each(filterClassList, function(index, value){
+                        $("." + value).removeClass(value);
+                    });
+                    hidden=false;
+                }
+                refreshView()
+            },
+        });
+
+        $(".filterMenuItem").on("click", function () {
+            var field = $(this).attr('field')
+            var name = $.trim($(this).attr('name'));
+            var id = $(this).attr('id');
+            var tags = $("#myTags").tagit("assignedTags");
+            if ($.inArray(name, tags) === -1) {
+                $(this).closest('li').addClass('filterCheck');
+                $("#myTags").tagit("createTag", name);
+                $('ul li:nth-last-child(2)').attr('id', id);
+                $('ul li:nth-last-child(2)').attr('field', field);
+                updateFilter(id, field);
+            } else {
+                $(this).parent().parent().removeClass('filterCheck');
+                $(this).removeClass('filterCheck');
+                $("#myTags").tagit("removeTagByLabel", name);
+                //updateFilterHide(id, field);
+            }
+            refreshView();
+        });
+
+        var filterClassList = [];
+        function updateFilter(id, field) {
+            var filterClass = "filtered-" + field;
+            if( $("." + filterClass).length == 0 ){
+                $('.block').addClass(filterClass);
+            }
+            $('.' + field + "-" + id).removeClass(filterClass);
+            if ($.inArray(filterClass, filterClassList) === -1) {
+                filterClassList.push(filterClass);
+            };
+        }
+        function updateFilterHide(id, field) {
+            var filterClass = "filtered-" + field;
+            $('.' + field + "-" + id).addClass(filterClass);
+            if ($('.block').length == $('.' + filterClass).length) {
+                $('.block').removeClass(filterClass);
+            }
+        }
+
+        function refreshView() {
+            $('.block').show();
+            $.each(filterClassList, function(index, value){
+                $("." + value).hide();
+            });
+            $('.textFiltered').hide();
+            resizeInnerWrap();
+        }
+
+        var offset = 220;
+        var duration = 500;
+        /*jQuery(window).scroll(function() {
+            if (jQuery(this).scrollTop() > offset) {
+                jQuery('.backToTop').fadeIn(duration);
+            } else {
+                jQuery('.backToTop').fadeOut(duration);
+            }
+        });
+    
+        jQuery('.backToTop').click(function(event) {
+            event.preventDefault();
+            jQuery('html, body').animate({scrollTop: 0}, duration);
+            return false;
+        })*/
+
+        $('#overlay').on('click',function(e){
+        	$('#menuFilter').multilevelpushmenu('collapse')
+        	$('#overlay').fadeOut("fast");
+        });
+
+        var resizeInnerWrap = function(){
+        	$('.inner-wrap').height('100%');
+        	$('.inner-wrap').height( $('.inner-wrap').height() - 80);
+        	$('#panel-indicatorlist-pad').height(56*$("#myTags").tagit("assignedTags").length);
+        	$('#panel-indicatorlist').css('min-height', $('.inner-wrap').height() - $('#panel-indicatorlist-pad').height());
+        };
+
+        resizeInnerWrap();
+        $( window ).resize(function() {
+        	resizeInnerWrap();
+        });
+
+        $('.lt-ie9 #chartTest').on('DOMMouseScroll mousewheel wheel',function(event){
+        	var scroll = $('.inner-wrap').scrollTop();
+        	$('.inner-wrap').stop().animate({ scrollTop:(scroll - event.originalEvent.wheelDelta*4)}, 300);
+        	return true;
+        });
+    });
+
+</script>

@@ -1,0 +1,993 @@
+﻿@using IndInv.Helpers
+@model IndInv.Models.ViewModels.PRViewModel
+@using IndInv.Models
+@using System.Globalization
+@using System.Text.RegularExpressions;
+
+@{
+    ViewBag.Title = "Performance Reports";
+    Layout = null;
+}
+
+@{var properties = ModelMetadataProviders.Current;
+  var fiscalYear = Model.Fiscal_Year;
+  var allFields = new List<string>();
+  var allFieldClasses = new List<string>();
+}
+@foreach (var coe in Model.allCoEs.Where(x => x.CoE_ID != 0).OrderBy(x => x.CoE))
+{
+    if (@Model.Analyst_ID.HasValue ? coe.Indicator_CoE_Map.Any(x => x.Indicator.Analyst_ID == @Model.Analyst_ID) : true)
+    {
+        var footnotes = new List<Footnotes>();
+		
+	<div class="row-right">
+		@if (coe.CoE_Type != null) { <div>Center of Excellence: @coe.CoE_Type</div> }
+	</div>
+		
+    <div class="row" style="min-width:100%">
+	<div class="tbl_Container">
+
+    <table class="tbl_PR" id="tbl_@coe.CoE_Abbr.Replace(" ", "_")" cellspacing="1" class="PR" border="1" runat="server" >
+    <tr class="prrow-CoETitle">
+        <td colspan="2"></td>
+        <td class="prtd-CoETitle" colspan="18">@coe.CoE</td>
+        <td colspan="3"></td>
+    </tr>
+    <tr class="prrow-seperator">
+        <td colspan="13"></td>
+    </tr>
+
+	<tr class="prheader-top">
+		<th class="col-top-blank-id" colspan ="1"></th>
+		<th class="col-top-blank-title" colspan ="1"></th>
+		<th class="prheader-1 prheader col-top" colspan="9">GIM</th>
+		<th class="prheader-1 prheader col-top-wide" colspan="1"></th>
+		<th class="prheader-1 prheader col-top" colspan ="9">ACE</th>
+		<th class="prheader-1 prheader col-top-wide" colspan ="1"></th>
+	</tr>
+
+	<tr class="prheader-1">
+		<th rowspan="2" class="col-id prheader prheader-1">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Number) </th>
+		<th rowspan="2" class="col-title prheader prheader-1">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.Indicator) </th>
+
+		<th rowspan="2" class="col-td prheader prheader-1">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_3", fiscalYear)).DisplayName</th>
+		<th rowspan="2" class="col-td prheader prheader-1">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_2", fiscalYear)).DisplayName</th>
+		<th rowspan="2" class="col-td prheader prheader-1">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_1", fiscalYear)).DisplayName</th>
+		<th rowspan="1" colspan="5" class="col-header prheader prheader-1">@FiscalYear.FYStrFull("FY_Header", fiscalYear)</th>
+		<th rowspan="2" class="col-td prheader prheader-1">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_", fiscalYear) + "Target").DisplayName</th>
+		<th rowspan="2" class="col-td col-td-wide prheader prheader-1">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_", fiscalYear) + "Performance_Threshold").DisplayName</th>
+
+		<th rowspan="2" class="col-td prheader prheader-1">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_3", fiscalYear)).DisplayName</th>
+		<th rowspan="2" class="col-td prheader prheader-1">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_2", fiscalYear)).DisplayName</th>
+		<th rowspan="2" class="col-td prheader prheader-1">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_1", fiscalYear)).DisplayName</th>
+		<th rowspan="1" colspan="5" class="col-header prheader prheader-1">@FiscalYear.FYStrFull("FY_Header", fiscalYear)</th>
+		<th rowspan="2" class="col-td prheader prheader-1">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_", fiscalYear) + "Target").DisplayName</th>
+		<th rowspan="2" class="col-td col-td-wide prheader prheader-1">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_", fiscalYear) + "Performance_Threshold").DisplayName</th>
+
+		<th rowspan="2" class="col-td col-td-wide prheader prheader-1">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_", fiscalYear) + "Comparator").DisplayName</th>
+	</tr>
+
+	<tr class="prheader-2 prheader-Final">
+		<th rowspan="1" class="col-td prheader prheader-2">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.FY_13_14_Q1)</th>
+		<th rowspan="1" class="col-td prheader prheader-2">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.FY_13_14_Q2)</th>
+		<th rowspan="1" class="col-td prheader prheader-2">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.FY_13_14_Q3)</th>
+		<th rowspan="1" class="col-td prheader prheader-2">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.FY_13_14_Q4)</th>
+		<th rowspan="1" class="col-td prheader prheader-2">YTD</th>
+		<th rowspan="1" class="col-td prheader prheader-2">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.FY_13_14_Q1)</th>
+		<th rowspan="1" class="col-td prheader prheader-2">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.FY_13_14_Q2)</th>
+		<th rowspan="1" class="col-td prheader prheader-2">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.FY_13_14_Q3)</th>
+		<th rowspan="1" class="col-td prheader prheader-2">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.FY_13_14_Q4)</th>
+		<th rowspan="1" class="col-td prheader prheader-2">YTD</th>
+	</tr>
+    @{var numCount = 1;}
+    @foreach (var area_map in coe.Area_CoE_Map.Where(x => Model.allMaps.Where(y => y.Indicator.Area == x.Area).Where(y => y.CoE == coe).Any(y => @Model.Analyst_ID.HasValue ? y.Indicator.Analyst_ID == @Model.Analyst_ID : true)).Where(x => x.Fiscal_Year == fiscalYear).OrderBy(x => x.Area.Sort))
+	{
+		<tr class='prrow prrow-area' areaID="@area_map.Area_ID" coeID="@coe.CoE_ID">
+			<td class="prarea" colspan='24' mapID="@area_map.Map_ID" area="@Html.DisplayTextFor(modelItem => area_map.Area.Area)">
+				@Html.DisplayFor(modelItem => area_map.Area.Area)
+				<br />
+				<div class="objective">
+					<ul class="triple-list objective-list">
+					@{if (area_map.Objective != null)
+	   {
+		   List<string> objectives;
+		   objectives = Regex.Matches(area_map.Objective, @"\[.*?\]").Cast<Match>().Select(m => m.Value.Substring(1, m.Value.Length - 2)).ToList();
+		   foreach (var objective in objectives)
+		   {	
+							<text><li>@Html.Raw(objective)</li></text>
+		   }
+	   }
+					}
+					</ul>
+				</div>
+			</td>
+		</tr>
+			   
+	   string[,] oldColumns = null;
+	   List<int> allColspans = new List<int>();
+	   var allMaps = Model.allMaps.Where(x => x.Fiscal_Year == fiscalYear).Where(e => e.Indicator.Area.Equals(area_map.Area)).Where(d => d.CoE.CoE.Contains(coe.CoE)).OrderBy(f => f.Number).ToList();
+	   var allNValues = Model.allMaps.Where(x => x.Fiscal_Year == fiscalYear && x.Indicator.Indicator_N_Value == true).ToList();
+	   var allMapsWithNValues = new List<Indicator_CoE_Maps>();
+	   foreach (var nValue in allNValues)
+	   {
+		   var indicatorIndex = allMaps.FirstOrDefault(x => x.Indicator_ID == nValue.Indicator.Indicator_N_Value_ID);
+		   if (indicatorIndex != null)
+		   {
+			   var position = allMaps.IndexOf(indicatorIndex);
+			   allMapsWithNValues.Add(indicatorIndex);
+			   allMaps.Insert(position + 1, nValue);
+		   }
+	   }
+	   foreach (var map in allMaps)
+	   {
+		   var indicator = map.Indicator;
+		   var linkedIndicator = Model.allIndicators.FirstOrDefault(x => x.Indicator_ID == indicator.Indicator_Link) ?? indicator;
+		   var indicatorType = indicator.GetType();
+		   var indicatorTitle = ""; int? number = numCount; var skip = false;
+		   if (map.Indicator.Indicator != null && map.Indicator.Indicator.Contains("%SKIP%") == false)
+		   {
+			   indicatorTitle = Html.Raw(map.Indicator.Indicator).ToString();
+			   number = numCount;
+		   }
+		   else
+		   {
+			   numCount--;
+			   number = null;
+			   skip = true;
+		   }
+		   int rowSpan;
+		   var colorID = (Int16)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_", fiscalYear) + "Color_ID").GetValue(indicator, null);
+		   var directionID = (Int16)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_", fiscalYear) + "Direction_ID").GetValue(indicator, null);
+		   var thresholdID = (Int16)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_", fiscalYear) + "Threshold_ID").GetValue(indicator, null);
+		   var formatStr = indicator.Format != null ? indicator.Format.Format_Code : "";
+		   var formatID = indicator.Format_ID != null ? indicator.Format_ID.ToString() : "";
+
+		   if (allMapsWithNValues.Contains(map) || !allNValues.Contains(map))
+		   {
+			   if (allMapsWithNValues.Contains(map))
+			   {
+				   rowSpan = 2;
+					@:<tr class='blockFilter coeID-@coe.CoE_ID areaID-@area_map.Area_ID @foreach (var footnote in map.Indicator.Indicator_Footnote_Map)
+																		 { @:footnoteID-@footnote.Footnote_ID 
+					} prrow prrow-hasNValue' areaID="@area_map.Area_ID" coeID="@coe.CoE_ID" mapID="@map.Map_ID" indicatorId="@map.Indicator_ID" colorID="@colorID" directionID="@directionID" thresholdID="@thresholdID" formatStr="@formatStr" formatID="@formatID">
+				}
+			   else
+			   {
+				   rowSpan = 1;
+					@:<tr class='blockFilter coeID-@coe.CoE_ID areaID-@area_map.Area_ID @foreach (var footnote in map.Indicator.Indicator_Footnote_Map)
+																		 { @:footnoteID-@footnote.Footnote_ID
+					} prrow'areaID="@area_map.Area_ID" coeID="@coe.CoE_ID" mapID="@map.Map_ID" indicatorId="@map.Indicator_ID" colorID="@colorID" directionID="@directionID" thresholdID="@thresholdID" formatStr="@formatStr" formatID="@formatID">
+				}
+														
+				<td rowspan="@rowSpan" class="col-id prtd-id" mapID="@map.Map_ID" >                
+					<a class="row-up"><i class="fa fa-sort-asc"></i></a>
+					@number
+					<a class="row-down"><i class="fa fa-sort-desc"></i></a>
+				</td>
+			   
+				<td rowspan="@rowSpan" indicatorID="@map.Indicator_ID" field="Indicator" class="prtd-title prcol-id">@indicatorTitle
+					@{var footnoteString = "";
+	   foreach (var footnote in map.Indicator.Indicator_Footnote_Map.Where(x => x.Fiscal_Year == fiscalYear).Where(e => e.Indicator_ID == map.Indicator_ID).OrderBy(e => e.Indicator_ID))
+	   {
+		   if (footnote.Footnote.Footnote_Order > 0 || footnote.Footnote.Footnote_Order == -2)
+		   {
+			   footnoteString += footnote.Footnote.Footnote_Symbol;
+			   footnoteString += ",";
+		   }
+		   if (!footnotes.Contains(footnote.Footnote))
+		   {
+			   footnotes.Add(footnote.Footnote);
+		   }
+
+	   }
+	   if (footnoteString.Length > 0)
+	   {
+		   footnoteString = footnoteString.Substring(0, footnoteString.Length - 1);
+	   }
+					}
+					<sup>@footnoteString</sup>
+				</td>			   
+		   }
+		   else if (allNValues.Contains(map))
+		   {
+			   rowSpan = 0;
+				@:<tr class='blockFilter coeID-@coe.CoE_ID areaID-@area_map.Area_ID @foreach (var footnote in map.Indicator.Indicator_Footnote_Map)
+																		{ @:footnoteID-@footnote.Footnote_ID
+				} prrow prrow-isNValue'areaID="@area_map.Area_ID" coeID="@coe.CoE_ID" mapID="@map.Map_ID" indicatorId="@map.Indicator_ID" colorID="@colorID" directionID="@directionID" thresholdID="@thresholdID" formatStr="@formatStr" formatID="@formatID">
+				numCount--;
+		   }
+		   else
+		   {
+			   rowSpan = 1;
+		   }
+		   numCount++;
+		   string[,] columns = new string[,]{
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_3",fiscalYear)).GetValue(indicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_3",fiscalYear) + "_Sup").GetValue(indicator,null),
+				"col-left-border", 
+				FiscalYear.FYStrFull("FY_3",fiscalYear), 
+				"1",
+			},
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_2",fiscalYear)).GetValue(indicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_2",fiscalYear) + "_Sup").GetValue(indicator,null), 
+				"", 
+				FiscalYear.FYStrFull("FY_2",fiscalYear),
+				"1"
+			},
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_1",fiscalYear)).GetValue(indicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_1",fiscalYear) + "_Sup").GetValue(indicator,null),
+				"", 
+				FiscalYear.FYStrFull("FY_1",fiscalYear), 
+				"1"
+			},
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q1").GetValue(indicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q1_Sup").GetValue(indicator,null), 
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q1_Color").GetValue(indicator,null) + " Q1_Color", 
+				FiscalYear.FYStrFull("FY_",fiscalYear) + "Q1",
+				"1"
+			},
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q2").GetValue(indicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q2_Sup").GetValue(indicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q2_Color").GetValue(indicator,null) + " Q2_Color", 
+				FiscalYear.FYStrFull("FY_",fiscalYear) + "Q2", 
+				"1"
+			},
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q3").GetValue(indicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q3_Sup").GetValue(indicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q3_Color").GetValue(indicator,null) + " Q3_Color", 
+				FiscalYear.FYStrFull("FY_",fiscalYear) + "Q3", 
+				"1"
+			},
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q4").GetValue(indicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q4_Sup").GetValue(indicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q4_Color").GetValue(indicator,null) + " Q4_Color", 
+				FiscalYear.FYStrFull("FY_",fiscalYear) + "Q4", 
+				"1"
+			},
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "YTD").GetValue(indicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "YTD_Sup").GetValue(indicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "YTD_Color").GetValue(indicator,null) + " YTD_Color", 
+				FiscalYear.FYStrFull("FY_",fiscalYear) + "YTD", 
+				"1"
+			},
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Target").GetValue(indicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Target_Sup").GetValue(indicator,null), 
+				"", FiscalYear.FYStrFull("FY_",fiscalYear) + "Target", 
+				rowSpan.ToString()
+			},
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Performance_Threshold").GetValue(indicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Performance_Threshold_Sup").GetValue(indicator,null), 
+				"", FiscalYear.FYStrFull("FY_",fiscalYear) + "Performance_Threshold", 
+				rowSpan.ToString()
+			},
+													
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_3",fiscalYear)).GetValue(linkedIndicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_3",fiscalYear) + "_Sup").GetValue(linkedIndicator,null),
+				"col-left-border", 
+				FiscalYear.FYStrFull("FY_3",fiscalYear), 
+				"1",
+			},
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_2",fiscalYear)).GetValue(linkedIndicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_2",fiscalYear) + "_Sup").GetValue(linkedIndicator,null), 
+				"", 
+				FiscalYear.FYStrFull("FY_2",fiscalYear),
+				"1"
+			},
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_1",fiscalYear)).GetValue(linkedIndicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_1",fiscalYear) + "_Sup").GetValue(linkedIndicator,null),
+				"", 
+				FiscalYear.FYStrFull("FY_1",fiscalYear), 
+				"1"
+			},
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q1").GetValue(linkedIndicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q1_Sup").GetValue(linkedIndicator,null), 
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q1_Color").GetValue(linkedIndicator,null) + " Q1_Color", 
+				FiscalYear.FYStrFull("FY_",fiscalYear) + "Q1",
+				"1"
+			},
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q2").GetValue(linkedIndicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q2_Sup").GetValue(linkedIndicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q2_Color").GetValue(linkedIndicator,null) + " Q2_Color", 
+				FiscalYear.FYStrFull("FY_",fiscalYear) + "Q2", 
+				"1"
+			},
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q3").GetValue(linkedIndicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q3_Sup").GetValue(linkedIndicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q3_Color").GetValue(linkedIndicator,null) + " Q3_Color", 
+				FiscalYear.FYStrFull("FY_",fiscalYear) + "Q3", 
+				"1"
+			},
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q4").GetValue(linkedIndicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q4_Sup").GetValue(linkedIndicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Q4_Color").GetValue(linkedIndicator,null) + " Q4_Color", 
+				FiscalYear.FYStrFull("FY_",fiscalYear) + "Q4", 
+				"1"
+			},
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "YTD").GetValue(linkedIndicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "YTD_Sup").GetValue(linkedIndicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "YTD_Color").GetValue(linkedIndicator,null) + " YTD_Color", 
+				FiscalYear.FYStrFull("FY_",fiscalYear) + "YTD", 
+				"1"
+			},
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Target").GetValue(linkedIndicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Target_Sup").GetValue(linkedIndicator,null), 
+				"", FiscalYear.FYStrFull("FY_",fiscalYear) + "Target", 
+				rowSpan.ToString()
+			},
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Performance_Threshold").GetValue(linkedIndicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Performance_Threshold_Sup").GetValue(linkedIndicator,null), 
+				"", FiscalYear.FYStrFull("FY_",fiscalYear) + "Performance_Threshold", 
+				rowSpan.ToString()
+			},
+													
+			{
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Comparator").GetValue(indicator,null),
+				(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Comparator_Sup").GetValue(indicator,null), 
+				"col-left-border", 
+				FiscalYear.FYStrFull("FY_",fiscalYear) + "Comparator", 
+				rowSpan.ToString()
+			}};
+		   ViewBag.PRCols = columns;
+		   if (!skip)
+		   {
+			   oldColumns = columns;
+		   }
+		   for (int i = 0; i <= columns.GetUpperBound(0); i++)
+		   {
+			   if (!allFields.Contains(columns[i, 3]))
+			   {
+				   allFields.Add(columns[i, 3]);
+				   allFieldClasses.Add(columns[i, 2]);
+			   }
+
+			   int colSpan = 1;
+			   if (i != columns.GetUpperBound(0) && columns[i + 1, 0] == "=" && i != 0)
+			   {
+				   int k = 1;
+				   while (columns[i + k, 0] == "=")
+				   {
+					   colSpan++;
+					   k++;
+				   }
+			   }
+			   else { colSpan = 1; };
+			   allColspans.Add(colSpan);
+			   if (columns[i, 0] != "=")
+			   {
+				   var cls = columns[i, 2];
+				   if (skip) { cls = oldColumns[i, 2]; };
+				   if (allNValues.Contains(map)) { cls = "prtd"; };
+				   if (columns[i, 4] != "0")
+				   {
+						<td align="center" indicatorID="@map.Indicator_ID" field="@Html.Raw(columns[i, 3])" colspan="@colSpan" rowspan="@Html.Raw(columns[i, 4])" class="col-td prtd @Html.Raw(cls)">
+                            <div class="tdValue">@Html.Raw(columns[i, 0]) <sup>@Html.Raw(columns[i, 1])</sup></div>
+						</td>
+				   }
+			   }
+			   else
+			   {
+				   var cls = columns[i, 2];
+				   if (skip) { cls = oldColumns[i, 2]; };
+				   if (allNValues.Contains(map)) { cls = "prtd"; };
+				   if (columns[i, 4] != "0")
+				   {
+						<td align="center", style="display:none" indicatorID="@map.Indicator_ID", field="@Html.Raw(columns[i, 3])", colspan="1", rowspan="@Html.Raw(columns[i, 4])", class="col-td prtd @Html.Raw(cls)">
+                            <div class="tdValue"></div>
+						</td>
+				   }
+			   }
+		   }
+		@:</tr>
+		}
+	}
+    </table>
+	</div>
+	
+	<div class="footer">
+    <div class="footnotes">
+@{var l = 0;
+	foreach (var footnote in Model.allFootnotes.Where(x => x.Footnote_ID != 6).Where(x =>x.Footnote_Order > 0).OrderBy(x=>x.Footnote_Order))
+	{
+		footnotes.Remove(footnote);
+		if (l % 6 == 0 && l != 0 || footnote.Footnote_Symbol == "*")
+		{ 
+		@:<br />
+	}
+	<sup>@footnote.Footnote_Symbol</sup>@footnote.Footnote;
+		if (footnote.Footnote_Order < 0)
+		{ 
+		@:<br />
+	}
+		l++;
+	}}<br />
+</div>
+<div id="coeNotes">
+
+			@{if (coe.CoE_Notes!= null){
+				List<string> coeNotes;
+				coeNotes = Regex.Matches(coe.CoE_Notes, @"\[.*?\]").Cast<Match>().Select(m => m.Value.Substring(1,m.Value.Length - 2)).ToList();	
+				foreach(var coeNote in coeNotes){	
+					<div class="coeNote-item"><text>@Html.Raw(coeNote)<br /></text></div>
+				}}
+			}
+
+</div>
+    <div class="footer-left-pg1">
+        Page 1 of 2
+    </div>
+    <div class="footer-right-pg1">
+        Generated on: @DateTime.Now.ToString("M/d/yyyy");
+    </div>
+	</div>
+
+	<div class="row" style="min-width:100%">
+	<div class="tbl_Container">
+
+    <table class="tbl_Def" id="tblDef_@coe.CoE_Abbr.Replace(" ", "_")" class="PRDef" border="1" runat="server" >
+    <tr class="prheader-1">
+    <td rowspan="1", class="prheader prheader-1 prcol-id">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Number) </td>
+    <td rowspan="1", class="prheader prheader-1">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.Indicator) </td>
+    <td rowspan="1", class="prheader prheader-1">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_", fiscalYear) + "Definition_Calculation").DisplayName</td>
+    <td rowspan="1", class="prheader prheader-1">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_", fiscalYear) + "Target_Rationale").DisplayName</td>
+    <td rowspan="1", class="prheader prheader-1">@properties.GetMetadataForProperty(null, typeof(Indicators), FiscalYear.FYStrFull("FY_", fiscalYear) + "Comparator_Source").DisplayName</td>
+    </tr>
+
+    @{numCount = 1;}
+    @foreach (var area_map in coe.Area_CoE_Map.Where(x => Model.allMaps.Where(y => y.Indicator.Area == x.Area).Where(y => y.CoE == coe).Any(y => @Model.Analyst_ID.HasValue ? y.Indicator.Analyst_ID == @Model.Analyst_ID : true)).Where(x => x.Fiscal_Year == fiscalYear).OrderBy(x => x.Area.Sort))
+	{
+		<tr class='prrow prrow-area' areaID="@area_map.Area_ID" coeID="@coe.CoE_ID">
+			<td class="prarea" colspan='14' mapID="@area_map.Map_ID" area="@Html.DisplayTextFor(modelItem => area_map.Area.Area)">
+				<b>@Html.DisplayFor(modelItem => area_map.Area.Area)</b>
+				<br />
+			</td>
+		</tr>
+		string[,] oldColumns = null;
+		foreach (var map in Model.allMaps.Where(x => x.Fiscal_Year == fiscalYear).Where(e => e.Indicator.Area.Equals(area_map.Area)).Where(d => d.CoE.CoE.Contains(coe.CoE)).OrderBy(f => f.Number))
+		{
+			var indicatorTitle = ""; int? number = numCount; var skip = false;
+			if (map.Indicator.Indicator != null && map.Indicator.Indicator.Contains("%SKIP%") == false)
+			{
+				indicatorTitle = Html.Raw(map.Indicator.Indicator).ToString();
+				number = numCount;
+			}
+			else
+			{
+				numCount--;
+				number = null;
+				skip = true;
+			}
+            <tr class='prrow' areaID="@area_map.Area_ID" coeID="@coe.CoE_ID" mapID="@map.Map_ID" style="background-color:White">
+            <td class="prtd-id-def" style="min-width:1%;" >@number</td>
+            @{numCount++;}
+            <td indicatorID="@map.Indicator_ID" field="Indicator" class="prtd-titleDef prcol-id">@indicatorTitle
+            <sup>
+            @{int j = 0;}
+            @foreach (var footnote in map.Indicator.Indicator_Footnote_Map.Where(x => x.Fiscal_Year == fiscalYear).Where(e => e.Indicator_ID == map.Indicator_ID).OrderBy(e => e.Indicator_ID))
+			{
+				if (j != 0)
+				{ Html.Raw(","); }
+				Html.DisplayFor(modelItem => footnote.Footnote.Footnote_Symbol);
+				j++;
+			}
+            </sup>
+            @{  var indicator = map.Indicator;
+				var indicatorType = indicator.GetType();
+				string[,] columns = new string[,]{
+                    {(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Definition_Calculation").GetValue(indicator,null),
+                     "", "prtdDef", FiscalYear.FYStrFull("FY_",fiscalYear) + "Definition_Calculation"},
+                    {(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Target_Rationale").GetValue(indicator,null),
+                     "", "prtdDef", FiscalYear.FYStrFull("FY_",fiscalYear) + "Target_Rationale"},
+                    {(string)indicatorType.GetProperty(FiscalYear.FYStrFull("FY_",fiscalYear) + "Comparator_Source").GetValue(indicator,null),
+                     "", "prtdDef", FiscalYear.FYStrFull("FY_",fiscalYear) + "Comparator_Source"},
+                };
+				if (!skip)
+				{
+					oldColumns = columns;
+				}
+				ViewBag.PRColsDefs = columns;
+            }
+            </td>
+            @for (int i = 0; i <= columns.GetUpperBound(0); i++)
+			{
+				int colSpan = 1;
+				if (i != columns.GetUpperBound(0) && columns[i + 1, 0] == "=")
+				{
+					int k = 1;
+					while (columns[i + k, 0] == "=")
+					{
+						colSpan++;
+						k++;
+					}
+				}
+				else { colSpan = 1; };
+				if (columns[i, 0] != "=")
+				{
+					var tdClass = columns[i, 2];
+					if (skip) { tdClass = oldColumns[i, 2]; };
+                    <td align="center", indicatorID="@map.Indicator_ID", field="@Html.Raw(columns[i, 3])", colspan="@colSpan", class="prtd @Html.Raw(tdClass)">@Html.Raw(columns[i, 0]) <sup>@Html.Raw(columns[i, 1])</sup></td>
+				}
+			}
+            </tr>
+		}
+	}
+    </table>
+	</div>
+	</div>
+
+    <div class="disclaimer">Portal data from the Canadian Institute for Health Information (CIHI) has been used to generate data within this report with acknowledgement to CIHI, the Ministry of Health and Long-Term Care (MOHLTC) and Stats Canada (as applicable). Views are not those of the acknowledged sources. Facility identifiable data other than Mount Sinai Hospital (MSH) is not to be published without the consent of that organization (except where reported at an aggregate level). As this is not a database supported by MSH, please demonstrate caution with use and interpretation of the information. MSH is not responsible for any changes derived from the source data/canned reports. Data may be subject to change.</div>
+    <div class="footer-left-pg2">
+        Page 2 of 2
+    </div>
+    <div class="footer-right-pg2">
+        Generated on: @DateTime.Now.ToString("M/d/yyyy");
+    </div>
+    </div>
+    }
+}
+
+<style>
+
+	.row {
+		padding-top:30px;
+	}
+
+	.row-right {
+		float:right;
+	}
+
+    body {
+        font-size: 1vmax;
+        font-family: 'Open Sans', sans-serif;
+		font-weight: 300;
+    }
+
+    .filter-bar {
+        background-color:#0061a7;
+
+    }
+
+    .filter {
+        color:white;
+        display:inline;
+        font-size:medium;
+    }
+
+
+    .add-indicator-panel-header {
+        background-color: rgb(51,51,51);
+        padding:5px;
+        margin-bottom:0px;
+        color:white;
+    }
+        .add-indicator-panel-header::before {
+            float:left;
+            font-family: FontAwesome;
+            content: "\f067";
+            color:white;
+            padding-right:5px;
+            padding-right:5px;
+        }
+    .add-indicator-panel-close {
+        color:white;
+        float:right;
+    }
+    .search {
+        margin:0px !Important;
+    }
+    .add-indicator-list {
+        height:219px;
+        overflow-y:scroll;
+        overflow-x:hidden;
+    }
+    .add-indicator-item-title {
+        font-weight:bold;
+        display:inline;
+    }
+    .add-indicator-item {
+        font-size:small;
+        display:block;
+        width:100% !important;
+        text-align:left !important;
+        padding:5px;
+    }
+        .add-indicator-item::before {
+            float:left;
+            font-family: FontAwesome;
+            /*font-size:large;*/
+            content: "\f0da";
+            color:black;
+            padding-right:5px;
+        }
+    .clicked {
+        background:#4cff00;
+    }
+    .included {
+        background:#ff6a00;
+    }
+    .new-map {
+        display:none;
+    }
+    .newrow > *:not(.cssGreen):not(.cssYellow):not(.cssRed)  {
+        background-color:lightblue !important;
+    }
+
+	.prcol-id {
+		max-width:5px !important;
+	}
+
+    .prrow tr {
+        -webkit-transition: all 0.30s ease-in-out;
+        -moz-transition: all 0.30s ease-in-out;
+        -ms-transition: all 0.30s ease-in-out;
+        -o-transition: all 0.30s ease-in-out;
+    }
+
+    .pr-edit-textarea {
+        -webkit-transition: all 0.30s ease-in-out;
+        -moz-transition: all 0.30s ease-in-out;
+        -ms-transition: all 0.30s ease-in-out;
+        -o-transition: all 0.30s ease-in-out;
+    }
+
+    .prrow-CoETitle > td {
+        background-color:rgb(0,51,102);
+        border:none !important;
+        color:white;
+        font-size:2em;
+    }
+    .prrow-Seperator > td {
+        border-left:1px solid white !important;
+        border-right:1px solid white  !important;
+		border-bottom: none;
+    }
+
+    .prheader-1 {
+        max-height: 10px !important;
+        border-color:black !important;
+        font-size: 0.8em;
+        background-color: rgb(0,51,102);
+        color: White;
+        text-align: center;
+        padding: 0px;
+    }
+
+    .prheader-2 {
+        max-height: 10px !important;
+        border-color:black !important;
+        font-size: 0.8em;
+        background-color: White;
+        color: Black;
+        text-align: center;
+        padding: 0px;
+    }
+
+    .prarea {
+        font-size: 11px;
+        background-color: Silver;
+        text-align: justify;
+        color: Black;
+        padding: 1px;
+    }
+	ul {
+		margin:1px;
+		padding:0px;
+		padding-left:5px;
+		list-style:none;
+	}
+
+	.tbl_Container {
+	}
+
+    table {
+		width:1900px;
+        /*height:95%;*/
+		outline:none !important;
+		border:none !important;
+    }
+
+    table, th, td {
+        font-size: 0.8em;
+		border-spacing:1px;
+        border-collapse:collapse;
+        white-space: normal;
+        page-break-inside:avoid;
+        font-family: 'Open Sans', sans-serif;
+		border-color:black;
+		font-weight: 300;
+		padding:0px !important;
+    }
+
+        table tr:nth-of-type(2n) {
+            background: none;
+        }
+
+    .prtd-id {
+        background-color: White;
+        text-align: center;
+        color: Black;
+        min-width: 1px;
+        padding: 0px;
+    }
+
+    .prtd-title {
+        background-color: White;
+        text-align: justify;
+        color: Black;
+        min-width: 20% !important;
+        max-width: 20% !important;
+        word-wrap: break-word;
+        padding: 0;
+		padding-right: 10px !important;
+		padding-left: 10px;
+    }
+
+    .prtd-id-def {
+        background-color: White;
+        text-align: center;
+        color: Black;
+        min-width: 1% !important;
+        max-width: 1% !important;
+        padding: 0;
+    }
+
+    .prtd-titleDef {
+        background-color: White;
+        text-align: justify;
+        color: Black;
+        min-width: 5.5% !important;
+        max-width: 5.5% !important;
+        word-wrap: normal;
+        padding: 0;
+		padding-right: 10px !important;
+		padding-left: 10px;
+    }
+
+    .prtd {
+        background-color: White;
+        text-align: center;
+        color: Black;
+        min-width: 60px !important;
+        padding: 0px;
+        margin:0px;
+    }
+
+    .prtdDef {
+        background-color: White;
+        text-align: left;
+        color: Black;
+        min-width: 6.5%;
+        max-width: 15%;
+        padding: 0px;
+		padding-left:0;
+    }
+
+    .footnotes, #coeNotes {
+        font-size:0.8em;
+    }
+
+    .disclaimer {
+        font-size:10px;
+    }
+
+    .footer-left-pg1, .footer-left-pg2 {
+        font-size:8px;
+        left:-5px;
+    }
+    .footer-right-pg1, .footer-right-pg2 {
+        float:right;
+        font-size:8px;
+        right:-5px;
+		position:fixed;
+		bottom:0px;
+    }
+	.footer {
+		page-break-after:always;
+	}
+
+    .cssRed {
+        background-color: rgb(255, 0, 0);
+        text-align: center;
+        color: White;
+        min-width: 6.5%;
+        padding: 0px;
+    }
+
+    .cssGreen {
+        background-color: rgb(0, 118, 53);
+        text-align: center;
+        color: White;
+        min-width: 6.5%;
+        padding: 0px;
+    }
+
+    .cssYellow {
+        background-color: rgb(255, 192, 0);
+        text-align: center;
+        color: Black;
+        min-width: 6.5%;
+        padding: 0px;
+    }
+
+    .cssWhite {
+        background-color: White;
+        text-align: center;
+        color: Black;
+        min-width: 6.5%;
+        padding: 0px;
+    }
+
+    .inventoryEdit {
+        padding: 0 0 0 0;
+        margin: 0 0 0 0;
+    }
+
+    .textBox1 {
+        width: inherit;
+        padding: 0 0 0 0;
+        margin: 0 0 0 0;
+        border: 0;
+        background-color: transparent;
+        color: inherit;
+    }
+
+    input[type="text"], textarea {
+        width: 100%;
+        box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        background-color: lightgray;
+    }
+
+    .newrow, .newrow-td, .thVal, .thVal2 {
+        padding: 0 0 0 0 !important;
+        margin: 0 0 0 0 !important;
+    }
+
+    .newrow-text {
+        margin: 0 0 0 0 !important;
+    }
+
+    .prrow-hasNValue > td {
+        border-bottom:0px none;
+    }
+    .prrow-isNValue > td {
+        border-top:0px none;
+        height:20px;
+    }
+
+
+	.new-fy-notes {
+		border:1px solid black;
+		background-color: Silver;
+	}
+
+	.col-uid {
+		width:1px;
+		overflow:hidden;
+	}
+	.col-id {
+		width:2%;
+	}
+	.col-td {
+		width:3%;
+	}
+
+	.col-td-wide {
+		width:8%;
+	}
+
+	.col-title {
+		width:15%;
+	}
+
+	.col-def {
+		width:30%;
+	}
+	.col-target-rationale{
+		width:30%;
+	}
+	.col-comparator-source{
+		width:32%;
+	}
+	.col-top {
+		width:32%;
+		border-right:none !important;
+		padding-left:88px;
+	}
+	.col-top-wide {
+		width:6%;
+		border-left:none !important;
+	}
+	.col-top-blank-id {
+		width:2%;
+		border:none !important;
+	}
+	.col-top-blank-title {
+		border:none !important;
+		width:15%;
+	}
+	.col-left-border {
+		border-left:3px solid black;
+	}
+	.prheader-top {
+		border-top:none !important;
+	}
+	#coeNotes {
+		border:1px solid black;
+		background-color: Silver;
+	}
+</style>
+
+<script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+<script type="text/javascript">
+    ; (function ($) {$.fn.columnize=function(e){var t={width:400,columns:!1,buildOnce:!1,overflow:!1,doneFunc:function(){},target:!1,ignoreImageLoading:!0,columnFloat:"left",lastNeverTallest:!1,accuracy:!1,manualBreaks:!1,cssClassPrefix:""};return e=$.extend(t,e),"string"==typeof e.width&&(e.width=parseInt(e.width,10),isNaN(e.width)&&(e.width=t.width)),this.each(function(){function n(e,t){var n=t?".":"";return u.length?n+u+"-"+e:n+e}function i(t,i,o,l){for(;(f||o.height()<l)&&i[0].childNodes.length;){var a=i[0].childNodes[0];if($(a).find(n("columnbreak",!0)).length)return;if($(a).hasClass(n("columnbreak")))return;t.append(a)}if(0!==t[0].childNodes.length){var d=t[0].childNodes,r=d[d.length-1];t[0].removeChild(r);var s=$(r);if(3==s[0].nodeType){var c=s[0].nodeValue,h=e.width/18;e.accuracy&&(h=e.accuracy);for(var u,g=null;o.height()<l&&c.length;){var m=c.indexOf(" ",h);u=-1!=m?c.substring(0,c.indexOf(" ",h)):c,g=document.createTextNode(u),t.append(g),c=c.length>h&&-1!=m?c.substring(m):""}if(o.height()>=l&&null!==g&&(t[0].removeChild(g),c=g.nodeValue+c),!c.length)return!1;s[0].nodeValue=c}return i.contents().length?i.prepend(s):i.append(s),3==s[0].nodeType}}function o(e,t,l,a){if(!e.contents(":last").find(n("columnbreak",!0)).length&&!e.contents(":last").hasClass(n("columnbreak"))&&t.contents().length){var d=t.contents(":first");if(!(d.length>0))return;if(1!=d.get(0).nodeType)return;var r=d.clone(!0);d.hasClass(n("columnbreak"))?(e.append(r),d.remove()):f?(e.append(r),d.remove()):1!=r.get(0).nodeType||r.hasClass(n("dontend"))||(e.append(r),r.is("img")&&l.height()<a+20?d.remove():!d.hasClass(n("dontsplit"))&&l.height()<a+20?d.remove():r.is("img")||d.hasClass(n("dontsplit"))?r.remove():(r.empty(),i(r,d,l,a)?d.addClass(n("split")):(d.addClass(n("split")),d.children().length&&o(r,d,l,a)),0===r.get(0).childNodes.length&&r.remove()))}}function l(){if(!r.data("columnized")||1!=r.children().length){if(r.data("columnized",!0),r.data("columnizing",!0),r.empty(),r.append($("<div class='"+n("first")+" "+n("last")+" "+n("column")+" ' style='width:100%; float: "+e.columnFloat+";'></div>")),$col=r.children().eq(r.children().length-1),$destroyable=c.clone(!0),e.overflow){for(targetHeight=e.overflow.height,i($col,$destroyable,$col,targetHeight),$destroyable.contents().find(":first-child").hasClass(n("dontend"))||o($col,$destroyable,$col,targetHeight);$col.contents(":last").length&&a($col.contents(":last").get(0));){var t=$col.contents(":last");t.remove(),$destroyable.prepend(t)}for(var l="",d=document.createElement("DIV");$destroyable[0].childNodes.length>0;){var s=$destroyable[0].childNodes[0];if(s.attributes)for(var h=0;h<s.attributes.length;h++)0===s.attributes[h].nodeName.indexOf("jQuery")&&s.removeAttribute(s.attributes[h].nodeName);d.innerHTML="",d.appendChild($destroyable[0].childNodes[0]),l+=d.innerHTML}var f=$(e.overflow.id)[0];f.innerHTML=l}else $col.append($destroyable);r.data("columnizing",!1),e.overflow&&e.overflow.doneFunc&&e.overflow.doneFunc()}}function a(e){return 3==e.nodeType?/^\s+$/.test(e.nodeValue)&&e.previousSibling?a(e.previousSibling):!1:1!=e.nodeType?!1:$(e).hasClass(n("dontend"))?!0:0===e.childNodes.length?!1:a(e.childNodes[e.childNodes.length-1])}function d(){if(g=0,h!=r.width()){h=r.width();var t=Math.round(r.width()/e.width),d=e.width,u=e.height;if(e.columns&&(t=e.columns),f&&(t=c.find(n("columnbreak",!0)).length+1,d=!1),1>=t)return l();if(!r.data("columnizing")){r.data("columnized",!0),r.data("columnizing",!0),r.empty(),r.append($("<div style='width:"+Math.floor(100/t)+"%; float: "+e.columnFloat+";'></div>")),N=r.children(":last"),N.append(c.clone()),s=N.height(),r.empty();var m=s/t,v=3,p=!1;e.overflow?(v=1,m=e.overflow.height):u&&d&&(v=1,m=u,p=!0);for(var w=0;v>w&&20>w;w++){r.empty();var b,y,N,C;try{b=c.clone(!0)}catch(T){b=c.clone()}b.css("visibility","hidden");for(var x=0;t>x;x++)y=0===x?n("first"):"",y+=" "+n("column"),y=x==t-1?n("last")+" "+y:y,r.append($("<div class='"+y+"' style='width:"+Math.floor(100/t)+"%; float: "+e.columnFloat+";'></div>"));for(x=0;x<t-(e.overflow?0:1)||p&&b.contents().length;){for(r.children().length<=x&&r.append($("<div class='"+y+"' style='width:"+Math.floor(100/t)+"%; float: "+e.columnFloat+";'></div>")),N=r.children().eq(x),p&&N.width(d+"px"),i(N,b,N,m),o(N,b,N,m);N.contents(":last").length&&a(N.contents(":last").get(0));)C=N.contents(":last"),C.remove(),b.prepend(C);x++,0===N.contents().length&&b.contents().length?N.append(b.contents(":first")):x!=t-(e.overflow?0:1)||e.overflow||b.find(n("columnbreak",!0)).length&&t++}if(e.overflow&&!p){var L=!1,M=document.all&&-1!=navigator.appVersion.indexOf("MSIE 7.");if(L||M){for(var z="",k=document.createElement("DIV");b[0].childNodes.length>0;){var F=b[0].childNodes[0];for(x=0;x<F.attributes.length;x++)0===F.attributes[x].nodeName.indexOf("jQuery")&&F.removeAttribute(F.attributes[x].nodeName);k.innerHTML="",k.appendChild(b[0].childNodes[0]),z+=k.innerHTML}var H=$(e.overflow.id)[0];H.innerHTML=z}else $(e.overflow.id).empty().append(b.contents().clone(!0))}else if(p)r.children().each(function(e){N=r.children().eq(e),N.width(d+"px"),0===e?N.addClass(n("first")):e==r.children().length-1?N.addClass(n("last")):(N.removeClass(n("first")),N.removeClass(n("last")))}),r.width(r.children().length*d+"px");else{N=r.children().eq(r.children().length-1),b.contents().each(function(){N.append($(this))});var I=(N.height(),0),O=1e7,V=0,q=!1,P=0;r.children().each(function(e){return function(t){var i=e.children().eq(t),o=i.children(":last").find(n("columnbreak",!0)).length;if(!o){var l=i.height();q=!1,I+=l,l>V&&(V=l,q=!0),O>l&&(O=l),P++}}}(r));var E=I/P;0===I?w=v:e.lastNeverTallest&&q?(g+=30,m+=30,w==v-1&&v++):V-O>30?m=E+30:Math.abs(E-m)>20?m=E:w=v}r.append($("<br style='clear:both;'>"))}r.find(n("column",!0)).find(":first"+n("removeiffirst",!0)).remove(),r.find(n("column",!0)).find(":last"+n("removeiflast",!0)).remove(),r.data("columnizing",!1),e.overflow&&e.overflow.doneFunc(),e.doneFunc()}}}var r=$(e.target?e.target:this),s=$(this).height(),c=$("<div></div>"),h=0,f=e.manualBreaks,u=t.cssClassPrefix;"string"==typeof e.cssClassPrefix&&(u=e.cssClassPrefix);var g=0;if(c.append($(this).contents().clone(!0)),!e.ignoreImageLoading&&!e.target&&!r.data("imageLoaded")&&(r.data("imageLoaded",!0),$(this).find("img").length>0)){var m=function(t,n){return function(){t.data("firstImageLoaded")||(t.data("firstImageLoaded","true"),t.empty().append(n.children().clone(!0)),t.columnize(e))}}($(this),c);return $(this).find("img").one("load",m),void $(this).find("img").one("abort",m)}r.empty(),d(),e.buildOnce||$(window).resize(function(){e.buildOnce||(r.data("timeout")&&clearTimeout(r.data("timeout")),r.data("timeout",setTimeout(d,200)))})})}})(jQuery)
+
+    ; (function ($) {
+        $.fn.textfill = function (setRatio, maxHeight) {
+        	var ele = $(this);
+            var area = $(".prarea");
+            var prHeader = $(".prheader");
+            var title = $(".prrow-CoETitle");
+            if (ele.width() / ele.height() < setRatio) {
+                while (ele.width() / ele.height() < setRatio) {
+                    var fontSize = parseInt(ele.css('font-size')) * 0.99;
+                    ele.css('font-size', fontSize );
+                    area.css('font-size', fontSize * 0.9);
+                    prHeader.css('font-size', fontSize);
+                    title.css('font-size', fontSize);
+                    ele.css('height', 'auto');
+                    ele.parent().css('height', maxHeight);
+                }
+            } else {
+                while (ele.width() / ele.height() > setRatio) {
+                	/*if (fontSize > 30) {
+                		var padding = parseInt(ele.css('padding')) * 1.05;
+                		if (padding == 0) { padding = 1; }
+                		ele.css('padding', padding);
+                		area.css('padding', padding);
+                		prHeader.css('padding', padding);
+                		title.css('padding', padding);
+                		ele.parent().css('height', maxHeight);
+                		//ele.css('margin-top', $(ele.parent()).height() /2);
+                		//break;
+                	} else {*/
+                		var fontSize = parseInt(ele.css('font-size')) * 1.05;
+                		ele.css('font-size', fontSize);
+                		area.css('font-size', fontSize * 0.9);
+                		prHeader.css('font-size', fontSize);
+                		title.css('font-size', fontSize);
+                		ele.css('height', maxHeight);
+                	/*}*/
+                }
+            }
+        }
+    })(jQuery);
+
+    $(document).ready(function () {
+        var objectiveColumnWidth = $('table').first().width() / 2
+        columnizeOpt = { width: objectiveColumnWidth };
+        $('.triple-list').columnize(columnizeOpt);
+        $(".tbl_PR").first().textfill(2.2, "90%");
+        $(".tbl_Def").first().textfill(2.2, "90%");
+    });
+</script>

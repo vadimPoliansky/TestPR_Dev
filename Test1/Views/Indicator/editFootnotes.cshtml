@@ -1,0 +1,139 @@
+﻿@using IndInv.Helpers
+@using IndInv.Models
+@using System.Globalization
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="~/Scripts/jquery.handsontable.full.js"></script>
+<link rel="stylesheet" media="screen" href="~/Scripts/jquery.handsontable.full.css" />
+@model IList<IndInv.Models.ViewModels.FootnotesViewModel>
+@using IndInv.Models
+@{
+    ViewBag.Title = "Edit Indicator Inventory";
+
+}
+
+<br />
+        <div id="dataTable"></div>
+
+<script type="text/javascript">
+
+    var maxed = false
+            , resizeTimeout
+            , availableWidth
+            , availableHeight
+            , $window = $(window)
+            , $example1 = $('#dataTable');
+
+    var calculateSize = function () {
+        var offset = $example1.offset();
+        availableWidth = $window.width() - offset.left + $window.scrollLeft();
+        availableHeight = $window.height() - offset.top + $window.scrollTop();
+
+        $example1.handsontable('updateSettings','width: ' + availableWidth + 'px');
+        $example1.handsontable('updateSettings','height: ' + availableHeight + 'px');
+        //$IndInv.style.height  = availableHeight + 'px';
+    };
+    $window.on('resize', calculateSize);
+    setInterval(calculateSize, 5000)
+
+    var values = @Html.Raw(Json.Encode(Model));
+
+    $example1 .handsontable({
+        data: values,
+        startRows: 1,
+        startCols: 1,
+        rowHeaders: true,
+        colHeaders: true,
+        strechH: 'all',
+        strechW: 'all',
+        scrollH: 'auto',
+        scrollV: 'auto',
+        minSpareRows: 1,
+        width: function () {
+            if (maxed && availableWidth === void 0) {
+                calculateSize();
+            }
+            return maxed  ?  availableWidth *0.98 : 300;
+        },
+        height: function () {
+            if (maxed && availableHeight === void 0) {
+                calculateSize();
+            }
+            return maxed  ?  availableHeight*0.93: 300;
+        },
+        fixedRowsTop: 0,
+        fixedColumnsLeft: 1,
+        contextMenu: true,
+        colWidths: [70, 400, 100],
+        colHeaders: [
+            "Symbol",
+            "Text",
+			"Order"
+        ],
+        columns: [
+            {data: 'Footnote_Symbol'},
+            {data: 'Footnote'},
+			{data: 'Footnote_Order'}
+        ],
+        afterChange: function (change, source) {
+            if (source === 'loadData') {
+                return;
+            } else {
+                for (var i = 0; i< change.length; ++i){
+                    if (change[i][1] != "Footnote_ID"){
+                        updateFootnote(change, i);
+                    }
+                }
+            }
+        },
+        beforeRemoveRow: function(index, amount){
+            var footnoteID =  this.getDataAtRowProp(index, 'Footnote_ID')
+            deleteFootnote(footnoteID);
+        }
+    });
+
+    maxed = !maxed;
+    $example1.handsontable('render');
+
+    function updateFootnote(change, i){
+        var changedRow = change[i][0];
+        var changedParameter = change[i][1];
+        var changedValue = change[i][3];
+        $.get('@Url.Action("/editFootnotes")', {Footnote_ID_Filter : $example1.handsontable('getDataAtCell', changedRow,'Footnote_ID')}, function (data) {
+            var newValue = data;
+            $example1.handsontable('setDataAtRowProp', changedRow,'Footnote_ID', data[0].Footnote_ID)
+            var parameters = []
+            parameters.push({
+                Footnote: (changedParameter=="Footnote" ?  changedValue : newValue[0].Footnote),
+                Footnote_ID: (changedParameter=="Footnote_ID" ?  changedValue : newValue[0].Footnote_ID),
+                Footnote_Symbol: (changedParameter=="Footnote_Symbol" ?  changedValue : newValue[0].Footnote_Symbol),
+                Footnote_Order: (changedParameter=="Footnote_Order" ?  changedValue : newValue[0].Footnote_Order)
+            })
+            $.ajax({
+                url: this.action,
+                type: 'POST',
+                data: JSON.stringify(parameters),
+                contentType: 'application/json; charset=utf-8',
+                success: function (result) {
+                },
+                error: function (request){
+                }
+            });
+        });
+    }
+
+    function deleteFootnote(footnoteID){
+        var parameters = {footnoteID: footnoteID};
+        $.ajax({
+            url:'@Url.Action("/deleteFootnotes")',
+            type: 'POST',
+            data: JSON.stringify(parameters),
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+            },
+            error: function (request){
+            }
+        });
+    }
+
+</script>
+ 

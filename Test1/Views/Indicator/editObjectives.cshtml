@@ -1,0 +1,70 @@
+﻿@using IndInv.Helpers
+@using IndInv.Models
+@using System.Globalization
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="~/Scripts/jquery.handsontable.full.js"></script>
+<link rel="stylesheet" media="screen" href="~/Scripts/jquery.handsontable.full.css" />
+@model IList<IndInv.Models.ViewModels.ObjectiveViewModel>
+@using IndInv.Models
+@{
+    ViewBag.Title = "Edit Indicator Inventory";
+
+}
+
+<br />
+        <div id="dataTable"></div>
+
+<div class='save-button'>Save</div>
+
+<script type="text/javascript">
+
+    var maxed = false
+        , resizeTimeout
+        , availableWidth
+        , availableHeight
+        , $window = $(window)
+        , $Objectives = $('#dataTable');
+
+    var values = @Html.Raw(Json.Encode(Model));
+
+    $Objectives .handsontable({
+        data: values,
+        startRows: 1,
+        startCols: 1,
+        rowHeaders: true,
+        colHeaders: true,
+        strechH: 'all',
+        strechW: 'all',
+        scrollH: 'auto',
+        scrollV: 'auto',
+        fixedRowsTop: 0,
+        fixedColumnsLeft: 1,
+        contextMenu: true,
+        colWidths: [700, 600],
+        colHeaders: [
+            "Objective",
+        ],
+        columns: [
+            {data: 'Objective'}
+        ],
+    });
+
+    maxed = !maxed;
+    $Objectives.handsontable('render');
+
+
+    $('.save-button').on('click',function(){
+		
+    	var objectives = $Objectives.handsontable('getDataAtCol',0);
+
+    	$.ajax({
+    		contentType: 'application/json; charset=utf-8',
+    		type:"POST",
+    		url: "editObjectives",
+    		data: JSON.stringify({mapID: @Model.FirstOrDefault().Map_ID, objectives: objectives}),
+    		traditional: true
+    	});
+    });
+
+</script>
+ 
