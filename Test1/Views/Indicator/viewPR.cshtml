@@ -2796,7 +2796,11 @@
             	if (notFiscalYear){
             		if(field != "CoE") { htmlContent += "<div class='menu-hover menu-dropdown-button' field='" + field + "'>All</div>"; }
             		jQuery.each(data, function (i, value) {
-            			htmlContent += "<div class='menu-hover menu-dropdown-button' id ='" + value[field + "_ID"] + "' field='" + field + "'>";
+            			if (value['Linked_CoE'] != true){
+            				htmlContent += "<div class='menu-hover menu-dropdown-button' id1='0' id ='" + value[field + "_ID"] + "' field='" + field + "'>";
+            			} else {
+            				htmlContent += "<div class='menu-hover menu-dropdown-button' id1 ='" + value[field + "_ID_1"] + "' id2='" + value[field + "_ID_2"] + "' field='" + field + "'>";
+            			}
             			if (field != "CoE") {
             				htmlContent += value[field] + "</div>";
             			}else if (field == "CoE"){
@@ -2828,11 +2832,17 @@
         });
 
         $(document).on('click', '.menu-dropdown-button', function(e){
-            var field = $(this).attr('field')
-            var id = $(this).attr('id');
-            if (id !== null){
-            	if (field === "CoE"){
-            		window.location.href = "../indicator/viewPR?fiscalYear=@ViewBag.fiscalYear&" + field + "ID=" + id;
+        	var field = $(this).attr('field')
+        	var id = $(this).attr('id');
+        	var id1 = $(this).attr('id1');
+        	var id2 = $(this).attr('id1');
+        	if (id !== null){
+        		if (field === "CoE"){
+        			if (id1 == 0){
+        				window.location.href = "../indicator/viewPR?fiscalYear=@ViewBag.fiscalYear&" + field + "ID=" + id;
+        			} else {
+        				window.location.href = "../indicator/viewPRdbl?fiscalYear=@ViewBag.fiscalYear&" + field + "ID=" + id1 + "&" + field + "ID2=" + id2;
+        			}
             	} else if (field === "Analyst"){
             		window.location.href = "../indicator/editInventory?fiscalYear=@ViewBag.fiscalYear&" + field + "ID=" + id;
             	} else if (field === "Fiscal_Year"){
@@ -3583,6 +3593,7 @@
         padding: 5px;
         color:white;
         font-size:0.75em;
+		line-height: 1 !important;
     }
 
     .menu-button-pressed {

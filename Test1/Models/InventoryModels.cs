@@ -277,8 +277,6 @@ namespace IndInv.Models
 		public Int16 Link_CoE_Map_ID { get; set; }
 		public Int16 Link_CoE_ID { get; set; }
 		public Int16 CoE_ID { get; set; }
-
-		ICollection<Link_CoE_Maps> Link_CoE_Maps { get; set; }
 	}
 
 	public class Indicator_Links

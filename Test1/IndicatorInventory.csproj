@@ -216,6 +216,7 @@
     <Compile Include="ViewModels\CoEsVM.cs" />
     <Compile Include="ViewModels\Edit_Indicator_LinksVM.cs" />
     <Compile Include="ViewModels\Indicator_LinksVM.cs" />
+    <Compile Include="ViewModels\Link_CoEVM.cs" />
     <Compile Include="ViewModels\TableCellsVM.cs" />
     <Compile Include="ViewModels\WordsVM.cs" />
     <Compile Include="ViewModels\IndicatorRowVM.cs" />

@@ -2341,7 +2341,7 @@ namespace IndInv.Controllers
         [HttpGet]
         public JsonResult getCoEs()
         {
-			var allCoEs = db.CoEs.Where(x => x.Indicator_CoE_Map.Count() == 0).Select(x => new Link_CoEViewModel
+			var allCoEs = db.CoEs.Where(x => x.Link_CoE_Maps.Count == 0).Select(x => new Link_CoEViewModel
 			{
 				CoE_ID = x.CoE_ID,
 				CoE = x.CoE,
@@ -2352,10 +2352,11 @@ namespace IndInv.Controllers
 			}).ToList();
 			var allLinkedCoEs = db.Link_CoEs.Select(x => new Link_CoEViewModel { 
 				Linked_CoE = true,
-				CoE_ID_1 = x.Link_CoE_Maps.FirstOrDefault().CoE_ID,
-				CoE_ID_2 = x.Link_CoE_Maps.Skip(1).FirstOrDefault().CoE_ID,
+				CoE_ID_1 = x.Link_CoE_Maps.OrderBy(y => y.CoE_ID).FirstOrDefault().CoE_ID,
+				CoE_ID_2 = x.Link_CoE_Maps.OrderBy(y => y.CoE_ID).Skip(1).FirstOrDefault().CoE_ID,
 				CoE_Title = x.CoE_Title,
-				CoE = x.CoE
+				CoE = x.CoE,
+				CoE_ID = 1
 			}).ToList();
 
 			allCoEs.AddRange(allLinkedCoEs);
